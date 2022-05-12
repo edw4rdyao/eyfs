@@ -4,33 +4,13 @@
 #include "Utils.h"
 #include <cstring>
 #include <ctime>
-extern SuperBlock kSuperBlock;
-extern DeviceManager kDeviceManager;
-extern BufferManager kBufferManager;
 
-FileSystem::FileSystem() {
-  p_superblock_ = &kSuperBlock;
-  p_buffer_manager_ = &kBufferManager;
-  p_device_manager_ = &kDeviceManager;
-  // 检查文件系统镜像文件是否存在
-  if (p_device_manager_->CheckImage()) {
-    cout << "[Info] filesystem loading successfully" << endl;
-    // 读入SuperBlock
-    p_device_manager_->ReadImage(p_superblock_, sizeof(SuperBlock),
-                                 FileSystem::SUPERBLOCK_START_ADDR);
-    if (DEBUG) {
-      cout << "[Superblock Infomation] ";
-      cout << "s_isize:" << p_superblock_->s_isize_ << "  ";
-      cout << "s_fsize:" << p_superblock_->s_fsize_ << "  ";
-      cout << "s_nfree:" << p_superblock_->s_nfree_ << "  ";
-      cout << "s_ninode:" << p_superblock_->s_ninode_ << endl;
-    }
-  } else {
-    cout << "[Info] filesystem image not exist, is creating and formating file "
-            "system...\n";
-    FormatFileSystem();
-    cout << "[Info] filesystem format sucessfully" << endl;
-  }
+FileSystem::FileSystem(SuperBlock *p_superblock,
+                       BufferManager *p_buffer_manager,
+                       DeviceManager *p_device_manager) {
+  p_superblock_ = p_superblock;
+  p_buffer_manager_ = p_buffer_manager;
+  p_device_manager_ = p_device_manager;
 }
 
 FileSystem::~FileSystem() {
@@ -82,7 +62,7 @@ void FileSystem::FormatFileSystem() {
                                     sizeof(free_block_manager));
     } else {
       // *将s_nfree和s_free[100]写入free_block
-      // *参考类的数据对齐方式，所以可以直接写sizeof()+sizeof()
+      // *参考类的数据对齐方式，所以可以直接写sizeof(s_free_)+sizeof(s_nfree_)
       memcpy(free_block, &p_superblock_->s_nfree_,
              sizeof(p_superblock_->s_free_) + sizeof(p_superblock_->s_nfree_));
       p_device_manager_->WriteImage(free_block, FileSystem::BLOCK_SIZE);
@@ -96,3 +76,13 @@ void FileSystem::FormatFileSystem() {
   p_device_manager_->WriteImage(p_superblock_, sizeof(SuperBlock),
                                 FileSystem::SUPERBLOCK_START_ADDR);
 }
+
+void FileSystem::Update() {}
+
+Inode *FileSystem::AllocInode() { return NULL; }
+
+void FileSystem::FreeInode(int block_id) {}
+
+Buffer *FileSystem::AllocBlock() { return NULL; }
+
+void FileSystem::FreeBlock(int block_id) {}

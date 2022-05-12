@@ -21,7 +21,7 @@ public:
   // @param: p_buffer: 需要释放的buffer的引用
   // @brief: 释放缓存控制块buffer
   // @ret: void
-  void ReleaseBlock(Buffer *p_buffer);
+  void ReleaseBuffer(Buffer *p_buffer);
   // @param: block_id: 需要读取的磁盘块号
   // @brief: 读取一个磁盘块到缓存中
   // @ret: 返回读取后的缓存控制块的引用
@@ -38,17 +38,35 @@ public:
   // @brief: 清空缓存控制块内容
   // @ret: void
   void ClearBuffer(Buffer *p_buffer);
+  // @param:
+  // @brief:
+  // @ret:
   void FlushBlock();
+  // @param:
+  // @brief:
+  // @ret:
   void FormatBlock();
-  void PushBuffer();
-  void PopBuffer();
-  BufferManager();
+  // @param:
+  // @brief:
+  // @ret:
+  void PushBuffer(Buffer *p_buffer);
+  // @param:
+  // @brief:
+  // @ret:
+  void PopBuffer(Buffer *p_buffer);
+  // @param:
+  // @brief:
+  // @ret:
+  BufferManager(DeviceManager *p_device_manager);
+  // @param:
+  // @brief:
+  // @ret:
   ~BufferManager();
 
 private:
-  DeviceManager *p_device_manager; // 磁盘设备管理
-  Buffer *bm_free_list_;           // 缓存控制块的自由缓存队列
-  Buffer bm_buffers_[BUFFERS_NUM]; // 缓存控制块数组
+  DeviceManager *p_device_manager_; // 磁盘设备管理
+  Buffer *bm_free_list_;            // 缓存控制块的自由缓存队列
+  Buffer bm_buffers_[BUFFERS_NUM];  // 缓存控制块数组
   unsigned char bm_mem_buffers_[BUFFERS_NUM][BUFFER_SIZE]; // 缓存区数组
 };
 

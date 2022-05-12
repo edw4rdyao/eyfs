@@ -8,9 +8,9 @@
 class Inode {
 public:
   enum InodeFlag {
-    ILOCK = 0x1, // 索引节点上锁
-    IUPD = 0x2,  // 内存Inode被修改过，需要更新相应外存Inode
-    IACC = 0x4, // 内存Inode被访问过，需要修改最近一次访问时间
+    ILOCK = 0x1,  // 索引节点上锁
+    IUPD = 0x2,   // 内存Inode被修改过，更新相应外存Inode
+    IACC = 0x4,   // 内存Inode被访问过，修改最近一次访问时间
     IMOUNT = 0x8, // 内存Inode用于挂载子文件系统
     IWANT = 0x10, // 有进程正在等待该内存Inode
     ITEXT = 0x20  // 内存Inode对应进程图像的正文段
@@ -59,7 +59,7 @@ public:
   void WriteInode();
   // @param: 无
   // @brief: 将文件的逻辑块号转化为对应的物理块号
-  // @ret:
+  // @ret: 对应的物理块号
   int BlockMap(int logic_black_id);
   // @param: time 当前时间
   // @brief: 更新外存Inode的最后访问时间和修改时间
@@ -73,6 +73,10 @@ public:
   // @brief:
   // @ret:
   void CleanInode();
+  // @param:
+  // @brief:
+  // @ret:
+  void TruncateInode();
   unsigned int i_flag_; // Inode文件状态的标志位
   unsigned int i_mode_; // 文件的工作方式
   int i_count_;         // 文件的引用计数

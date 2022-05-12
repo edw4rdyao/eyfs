@@ -19,3 +19,18 @@ Inode::Inode() {
 
 Inode::~Inode() {}
 
+void Inode::ReadInode() {}
+
+void Inode::WriteInode() {}
+
+int Inode::BlockMap(int logic_block_id) {
+  return 0;
+}
+
+void Inode::UpdateInode(int time) {}
+
+void Inode::CleanInode() {}
+
+void Inode::CopyInode() {}
+
+void Inode::TruncateInode() {}

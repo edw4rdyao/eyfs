@@ -1,6 +1,8 @@
 #include "BufferManager.h"
 
-BufferManager::BufferManager() {}
+BufferManager::BufferManager(DeviceManager *p_device_manager) {
+  p_device_manager_ = p_device_manager;
+}
 
 BufferManager::~BufferManager() {}
 
@@ -25,3 +27,26 @@ void BufferManager::Initialize() {
   return;
 }
 
+Buffer *BufferManager::GetBlock(int block_id) {
+  return NULL;
+}
+
+void BufferManager::ReleaseBuffer(Buffer *p_buffer) {}
+
+Buffer *BufferManager::ReadBlock(int block_id) {
+  return NULL;
+}
+
+void BufferManager::WriteBlock(Buffer *p_buffer) {}
+
+void BufferManager::WriteBlockDelay(Buffer *p_buffer) {}
+
+void BufferManager::ClearBuffer(Buffer *p_buffer) {}
+
+void BufferManager::FlushBlock() {}
+
+void BufferManager::FormatBlock() {}
+
+void BufferManager::PushBuffer(Buffer *p_buffer) {}
+
+void BufferManager::PopBuffer(Buffer *p_buffer) {}

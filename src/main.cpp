@@ -1,21 +1,8 @@
-#include "BufferManager.h"
-#include "DeviceManager.h"
-#include "FileManager.h"
-#include "FileSystem.h"
-#include "SuperBlock.h"
-#include "Utils.h"
+#include "Eyfs.h"
 #include <iostream>
 #include <string>
 #include <vector>
 using namespace std;
-
-const char *IMAGE_NAME = "MyDisk.img";
-
-// 单例模式，一些全局的变量
-DeviceManager kDeviceManager(IMAGE_NAME);
-SuperBlock kSuperBlock;
-BufferManager kBufferManager;
-FileSystem kFileSystem;
 
 // @param cmd_args：用户输入的参数
 // @brief 根据用户输入的命令和参数执行相关的函数
@@ -24,6 +11,7 @@ void ExecuteCmd(vector<string> cmd_args);
 
 int main() {
   DisplayInfomation();
+  Eyfs *eyfs = new Eyfs();
   while (1) {
     string cmd;
     getline(cin, cmd);
@@ -47,6 +35,7 @@ int main() {
       }
     }
   }
+  delete eyfs;
   return 0;
 }
 

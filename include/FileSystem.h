@@ -2,6 +2,7 @@
 #define FILESYSTEM_H
 #include "BufferManager.h"
 #include "DeviceManager.h"
+#include "Inode.h"
 #include "SuperBlock.h"
 
 // @class FileSystem
@@ -25,19 +26,21 @@ public:
   static const int DATA_ZONE_START_ADDR = 1024;
   static const int DATA_ZONE_END_ADDR = 16384 - 1;
   static const int DATA_ZONE_SIZE = DISK_SIZE - DATA_ZONE_START_ADDR;
-  SuperBlock *p_superblock_;
-  BufferManager *p_buffer_manager_;
-  DeviceManager *p_device_manager_;
-  // @param: 
-  // @brief: 
-  // @ret: 
-  void FormatFileSystem();
-  // @param: 
-  // @brief: 
-  // @ret: 
-  
-  FileSystem();
+  FileSystem(SuperBlock *p_superblock, BufferManager *p_buffer_manager,
+             DeviceManager *p_device_manager);
   ~FileSystem();
+  void FormatFileSystem();
+  void Update();
+  Inode *AllocInode();
+  void FreeInode(int block_id);
+  Buffer *AllocBlock();
+  void FreeBlock(int block_id);
+  // SuperBlock对象的引用
+  SuperBlock *p_superblock_;
+  // Buffermanager对象的引用
+  BufferManager *p_buffer_manager_;
+  // DeviceManager对象的引用
+  DeviceManager *p_device_manager_;
 };
 
 #endif
