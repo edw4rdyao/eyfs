@@ -10,17 +10,17 @@ using namespace std;
 
 // @param: 
 // @brief: 
-// @ret: 
+// @return: 
 void DisplayInfomation();
 
 // @param: 
 // @brief: 
-// @ret: 
+// @return: 
 vector<string> ParseCmd(string cmd);
 
 // @param: 
 // @brief: 
-// @ret: 
+// @return: 
 void PrintLog();
 
 #endif

@@ -48,3 +48,5 @@ Eyfs::~Eyfs() {
   delete p_file_manager_;
   delete p_user_;
 }
+
+void Eyfs::ExecuteCmd(vector<string> cmd_args) { return; }

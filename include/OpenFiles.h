@@ -10,15 +10,15 @@ public:
   ~OpenFiles();
   // @param:
   // @brief:
-  // @ret:
+  // @return:
   int AllocFreeSlot();
   // @param:
   // @brief:
-  // @ret:
+  // @return:
   File *GetFile(int fd);
   // @param: 
   // @brief: 
-  // @ret: 
+  // @return: 
   void SetFile(int fd, File* p_file);
   // 指向系统文件打开表
   File* ProcessOpenFilesTable[FILESNUM];

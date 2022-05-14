@@ -21,39 +21,39 @@ public:
   ~FileManager();
   // @param:
   // @brief:
-  // @ret:
+  // @return:
   void Open();
   // @param:
   // @brief:
-  // @ret:
+  // @return:
   void Create();
   // @param:
   // @brief:
-  // @ret:
+  // @return:
   void OpenCommon(Inode *p_inode, int mode, int trans);
   // @param:
   // @brief:
-  // @ret:
+  // @return:
   void Close();
   // @param:
   // @brief:
-  // @ret:
+  // @return:
   void Seek();
   // @param:
   // @brief:
-  // @ret:
+  // @return:
   void Read();
   // @param:
   // @brief:
-  // @ret:
+  // @return:
   void Write();
   // @param:
   // @brief:
-  // @ret:
+  // @return:
   void ReadWriteCommon(enum File::FileFlags mode);
   // @param:
   // @brief:
-  // @ret:
+  // @return:
   Inode *SearchInode(enum FileManager::DirectorySearchMode mode);
   Inode *MakeInode(unsigned int mode);
   void WriteDirectory(Inode p_inode);

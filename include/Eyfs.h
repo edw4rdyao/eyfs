@@ -20,6 +20,10 @@ private:
   User *p_user_;
 
 public:
+  // @param cmd_args：用户输入的参数
+  // @brief 根据用户输入的命令和参数执行相关的函数
+  // @return void
+  void ExecuteCmd(vector<string> cmd_args);
   Eyfs();
   ~Eyfs();
 };

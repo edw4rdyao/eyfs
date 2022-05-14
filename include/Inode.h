@@ -51,31 +51,31 @@ public:
   ~Inode();
   // @param: 无
   // @brief: 根据Inode中对应的磁盘设备索引表，读取数据
-  // @ret: void
+  // @return: void
   void ReadInode();
   // @param: 无
   // @brief: 根据Inode中对应的磁盘设备索引表，读取数据
-  // @ret: void
+  // @return: void
   void WriteInode();
   // @param: 无
   // @brief: 将文件的逻辑块号转化为对应的物理块号
-  // @ret: 对应的物理块号
+  // @return: 对应的物理块号
   int BlockMap(int logic_black_id);
   // @param: time 当前时间
   // @brief: 更新外存Inode的最后访问时间和修改时间
-  // @ret: void
+  // @return: void
   void UpdateInode(int time);
   // @param:
   // @brief:
-  // @ret:
+  // @return:
   void CopyInode();
   // @param:
   // @brief:
-  // @ret:
+  // @return:
   void CleanInode();
   // @param:
   // @brief:
-  // @ret:
+  // @return:
   void TruncateInode();
   unsigned int i_flag_; // Inode文件状态的标志位
   unsigned int i_mode_; // 文件的工作方式

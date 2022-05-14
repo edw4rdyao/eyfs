@@ -28,11 +28,11 @@ public:
   int b_resid_;           // IO出错剩余的字节数
   // @param:
   // @brief:
-  // @ret: void
+  // @return: void
   Buffer();
   // @param:
   // @brief:
-  // @ret: void
+  // @return: void
   ~Buffer();
 };
 

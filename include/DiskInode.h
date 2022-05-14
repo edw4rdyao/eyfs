@@ -16,7 +16,7 @@ public:
   int d_modify_time_;   // 最后修改时间
   // @param: 无
   // @brief: DiskInode的构造函数，初始化各个属性
-  // @ret: void
+  // @return: void
   DiskInode();
   ~DiskInode();
 };

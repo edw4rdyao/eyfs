@@ -12,55 +12,55 @@ public:
   static const unsigned int BUFFER_SIZE = 512; // 每块缓存的大小
   // @param: 无
   // @brief: 初始化每个缓存块的b_forward和b_back
-  // @ret: void
+  // @return: void
   void Initialize();
   // @param: block_id: 需要申请的磁盘块号
   // @brief: 向设备申请一块块号为block_id的磁盘块
-  // @ret: Buffer* 申请成功后的缓存控制块Buffer的引用
+  // @return: Buffer* 申请成功后的缓存控制块Buffer的引用
   Buffer *GetBlock(int block_id);
   // @param: p_buffer: 需要释放的buffer的引用
   // @brief: 释放缓存控制块buffer
-  // @ret: void
+  // @return: void
   void ReleaseBuffer(Buffer *p_buffer);
   // @param: block_id: 需要读取的磁盘块号
   // @brief: 读取一个磁盘块到缓存中
-  // @ret: 返回读取后的缓存控制块的引用
+  // @return: 返回读取后的缓存控制块的引用
   Buffer *ReadBlock(int block_id);
   // @param: p_buffer 需要写入磁盘块对应的缓存控制块
   // @brief: 将缓存控制块写入磁盘块
-  // @ret: void
+  // @return: void
   void WriteBlock(Buffer *p_buffer);
   // @param: p_buffer: 需要延迟写的磁盘块对应的缓存控制块
   // @brief:
-  // @ret: void
+  // @return: void
   void WriteBlockDelay(Buffer *p_buffer);
   // @param: p_buffer 需要清空的缓存控制块的引用
   // @brief: 清空缓存控制块内容
-  // @ret: void
+  // @return: void
   void ClearBuffer(Buffer *p_buffer);
   // @param:
   // @brief:
-  // @ret:
+  // @return:
   void FlushBlock();
   // @param:
   // @brief:
-  // @ret:
+  // @return:
   void FormatBlock();
   // @param:
   // @brief:
-  // @ret:
+  // @return:
   void PushBuffer(Buffer *p_buffer);
   // @param:
   // @brief:
-  // @ret:
+  // @return:
   void PopBuffer(Buffer *p_buffer);
   // @param:
   // @brief:
-  // @ret:
+  // @return:
   BufferManager(DeviceManager *p_device_manager);
   // @param:
   // @brief:
-  // @ret:
+  // @return:
   ~BufferManager();
 
 private:

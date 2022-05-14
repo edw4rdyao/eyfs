@@ -4,10 +4,6 @@
 #include <vector>
 using namespace std;
 
-// @param cmd_args：用户输入的参数
-// @brief 根据用户输入的命令和参数执行相关的函数
-// @ret void
-void ExecuteCmd(vector<string> cmd_args);
 
 int main() {
   DisplayInfomation();
@@ -29,7 +25,7 @@ int main() {
         cout << endl;
       }
       try {
-        ExecuteCmd(cmd_args);
+        eyfs->ExecuteCmd(cmd_args);
       } catch (string err) {
         cout << "[Error]" << err;
       }
@@ -38,5 +34,3 @@ int main() {
   delete eyfs;
   return 0;
 }
-
-void ExecuteCmd(vector<string> cmd_args) { return; }
