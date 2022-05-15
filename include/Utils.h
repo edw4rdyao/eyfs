@@ -1,6 +1,8 @@
 #ifndef UTILS_H
 #define UTILS_H
+
 #define DEBUG 1
+
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -8,19 +10,19 @@
 #include <vector>
 using namespace std;
 
-// @param: 
-// @brief: 
-// @return: 
+// @param:
+// @brief:
+// @return:
 void DisplayInfomation();
 
-// @param: 
-// @brief: 
-// @return: 
+// @param:
+// @brief:
+// @return:
 vector<string> ParseCmd(string cmd);
 
-// @param: 
-// @brief: 
-// @return: 
+// @param:
+// @brief:
+// @return:
 void PrintLog();
 
 #endif

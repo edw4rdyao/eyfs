@@ -36,6 +36,7 @@ Eyfs::Eyfs() {
 
     cout << "[Info] filesystem format sucessfully" << endl;
   }
+  running_ = true;
 }
 
 Eyfs::~Eyfs() {
@@ -49,4 +50,39 @@ Eyfs::~Eyfs() {
   delete p_user_;
 }
 
-void Eyfs::ExecuteCmd(vector<string> cmd_args) { return; }
+void Eyfs::ExecuteCmd(vector<string> cmd_args) {
+  if (cmd_args[0] == "exit") {
+    running_ = false;
+  } else if (cmd_args[0] == "clear") {
+    system("cls");
+  }
+  return;
+}
+
+void Eyfs::Run() {
+  while (running_) {
+    string cmd;
+    getline(cin, cmd);
+    vector<string> cmd_args = ParseCmd(cmd);
+    if (cmd_args.size()) {
+      if (DEBUG) {
+        PrintLog();
+        cout << "[Command] ";
+        for (auto it = cmd_args.begin(); it != cmd_args.end(); it++) {
+          if (it == cmd_args.begin())
+            cout << "cmd: " << *it << " ";
+          else
+            cout << "arg" << (it - cmd_args.begin()) << ":" << *it << " ";
+        }
+        cout << endl;
+      }
+      try {
+        ExecuteCmd(cmd_args);
+      } catch (string err) {
+        cout << "[Error] " << err;
+      }
+    }
+  }
+  cout << "[Info] bye, best wishes" << endl;
+  return;
+}

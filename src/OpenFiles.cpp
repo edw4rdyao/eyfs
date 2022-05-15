@@ -1,16 +1,14 @@
 #include "OpenFiles.h"
-#include "cstring"
+#include <cstring>
 
 OpenFiles::OpenFiles() {
-  memset(ProcessOpenFilesTable, NULL, sizeof(ProcessOpenFilesTable));
+  memset(ProcessOpenFilesTable, 0, sizeof(ProcessOpenFilesTable));
 }
 
 OpenFiles::~OpenFiles() {}
 
-int OpenFiles::AllocFreeSlot() {}
+int OpenFiles::AllocFreeSlot() { return 0; }
 
-File *OpenFiles::GetFile(int fd) {
-  return NULL;
-}
+File *OpenFiles::GetFile(int fd) { return NULL; }
 
 void OpenFiles::SetFile(int fd, File *p_file) {}
