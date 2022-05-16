@@ -15,39 +15,39 @@ class FileManager;
 class User {
 public:
   enum ErrorCode {
-    UNOERROR = 0,  // No error
-    UEPERM = 1,    // Operation not permitted
-    UENOENT = 2,   // No such file or directory
-    UESRCH = 3,    // No such process
-    UEINTR = 4,    // Interrupted system call
-    UEIO = 5,      // I/O error
-    UENXIO = 6,    // No such device or address
-    UE2BIG = 7,    // Arg list too long
-    UENOEXEC = 8,  // Exec format error
-    UEBADF = 9,    // Bad file number
-    UECHILD = 10,  // No child processes
-    UEAGAIN = 11,  // Try again
-    UENOMEM = 12,  // Out of memory
-    UEACCES = 13,  // Permission denied
-    UEFAULT = 14,  // Bad address
-    UENOTBLK = 15, // Block device required
-    UEBUSY = 16,   // Device or resource busy
-    UEEXIST = 17,  // File exists
-    UEXDEV = 18,   // Cross-device link
-    UENODEV = 19,  // No such device
-    UENOTDIR = 20, // Not a directory
-    UEISDIR = 21,  // Is a directory
-    UEINVAL = 22,  // Invalid argument
-    UENFILE = 23,  // File table overflow
-    UEMFILE = 24,  // Too many open files
-    UENOTTY = 25,  // Not a typewriter(terminal)
-    UETXTBSY = 26, // Text file busy
-    UEFBIG = 27,   // File too large
-    UENOSPC = 28,  // No space left on device
-    UESPIPE = 29,  // Illegal seek
-    UEROFS = 30,   // Read-only file system
-    UEMLINK = 31,  // Too many links
-    UEPIPE = 32,   // Broken pipe
+    U_NOERROR = 0,  // No error
+    U_EPERM = 1,    // Operation not permitted
+    U_ENOENT = 2,   // No such file or directory
+    U_ESRCH = 3,    // No such process
+    U_EINTR = 4,    // Interrupted system call
+    U_EIO = 5,      // I/O error
+    U_ENXIO = 6,    // No such device or address
+    U_E2BIG = 7,    // Arg list too long
+    U_ENOEXEC = 8,  // Exec format error
+    U_EBADF = 9,    // Bad file number
+    U_ECHILD = 10,  // No child processes
+    U_EAGAIN = 11,  // Try again
+    U_ENOMEM = 12,  // Out of memory
+    U_EACCES = 13,  // Permission denied
+    U_EFAULT = 14,  // Bad address
+    U_ENOTBLK = 15, // Block device required
+    U_EBUSY = 16,   // Device or resource busy
+    U_EEXIST = 17,  // File exists
+    U_EXDEV = 18,   // Cross-device link
+    U_ENODEV = 19,  // No such device
+    U_ENOTDIR = 20, // Not a directory
+    U_EISDIR = 21,  // Is a directory
+    U_EINVAL = 22,  // Invalid argument
+    U_ENFILE = 23,  // File table overflow
+    U_EMFILE = 24,  // Too many open files
+    U_ENOTTY = 25,  // Not a typewriter(terminal)
+    U_ETXTBSY = 26, // Text file busy
+    U_EFBIG = 27,   // File too large
+    U_ENOSPC = 28,  // No space left on device
+    U_ESPIPE = 29,  // Illegal seek
+    U_EROFS = 30,   // Read-only file system
+    U_EMLINK = 31,  // Too many links
+    U_EPIPE = 32,   // Broken pipe
   };
 
   User(FileManager *p_file_manager);

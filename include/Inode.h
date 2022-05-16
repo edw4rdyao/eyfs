@@ -8,12 +8,12 @@
 class Inode {
 public:
   enum InodeFlag {
-    ILOCK = 0x1,  // 索引节点上锁
-    IUPD = 0x2,   // 内存Inode被修改过，更新相应外存Inode
-    IACC = 0x4,   // 内存Inode被访问过，修改最近一次访问时间
-    IMOUNT = 0x8, // 内存Inode用于挂载子文件系统
-    IWANT = 0x10, // 有进程正在等待该内存Inode
-    ITEXT = 0x20  // 内存Inode对应进程图像的正文段
+    I_LOCK = 0x1,  // 索引节点上锁
+    I_UPD = 0x2,   // 内存Inode被修改过，更新相应外存Inode
+    I_ACC = 0x4,   // 内存Inode被访问过，修改最近一次访问时间
+    I_MOUNT = 0x8, // 内存Inode用于挂载子文件系统
+    I_WANT = 0x10, // 有进程正在等待该内存Inode
+    I_TEXT = 0x20  // 内存Inode对应进程图像的正文段
   };
   static const unsigned int IALLOC = 0x8000; // 文件被使用
   static const unsigned int IFMT = 0x6000;   // 文件类型掩码
