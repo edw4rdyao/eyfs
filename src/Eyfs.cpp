@@ -24,20 +24,26 @@ Eyfs::Eyfs() {
     cout << "[Info] filesystem loading successfully" << endl;
     // 读入SuperBlock
     p_device_manager->ReadImage(p_superblock, sizeof(SuperBlock),
-                                 FileSystem::SUPERBLOCK_START_ADDR);
+                                FileSystem::SUPERBLOCK_START_ADDR);
     if (DEBUG) {
-      cout << "[Superblock Infomation] ";
+      cout << "[Superblock Info] ";
       cout << "s_isize:" << p_superblock->s_isize_ << "  ";
       cout << "s_fsize:" << p_superblock->s_fsize_ << "  ";
       cout << "s_nfree:" << p_superblock->s_nfree_ << "  ";
       cout << "s_ninode:" << p_superblock->s_ninode_ << endl;
     }
+    // 初始化 root根目录
+    p_file_manager->root_inode_ = p_inode_table->GetInode(0);
+    p_file_manager->root_inode_->i_count_ = 0xff;
     // TODO 读入当前用户列表
 
   } else {
     cout << "[Info] filesystem image not exist, is creating and formating file "
             "system...\n";
     p_file_system->FormatFileSystem();
+    // 初始化 root根目录
+    p_file_manager->root_inode_ = p_inode_table->GetInode(0);
+    p_file_manager->root_inode_->i_count_ = 0xff;
     // TODO root用户创建基础文件夹
 
     cout << "[Info] filesystem format sucessfully" << endl;

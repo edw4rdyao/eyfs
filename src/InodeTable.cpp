@@ -38,8 +38,8 @@ Inode *InodeTable::GetInode(int id) {
     } else {
       // 分配成功
       if (DEBUG) {
-        cout << "[InodeTable Info] inode is not loaded but alloced.  "
-             << "id:" << id << "  index:" << index << endl;
+        cout << "[InodeTable Info] inode is not loaded but alloced successfully.  "
+             << "id:" << id << endl;
       }
       p_inode->i_id_ = id;
       p_inode->i_count_++;
@@ -92,7 +92,7 @@ void InodeTable::UpdateInodeTable() {
 
 int InodeTable::IsLoaded(int id) {
   if (DEBUG) {
-    Print("InodeTable Info", "begin judge is loaded inode");
+    Print("InodeTable Info", "begin judge the inode if loaded");
   }
   // 寻找外存Inode是否存在内存Inode拷贝
   for (size_t i = 0; i < InodeTable::INODENUM; i++) {

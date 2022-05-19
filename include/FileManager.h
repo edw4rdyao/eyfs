@@ -50,7 +50,7 @@ public:
   // @param:
   // @brief:
   // @return:
-  Inode *SearchInode(enum FileManager::DirectorySearchMode mode);
+  Inode *SearchDirectory(enum FileManager::DirectorySearchMode mode);
   Inode *MakeInode(unsigned int mode);
   void WriteDirectory(Inode p_inode);
   void ChangeDirectory();

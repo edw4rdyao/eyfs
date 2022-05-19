@@ -20,7 +20,7 @@ vector<string> ParseCmd(string cmd) {
   return cmd_args;
 }
 
-void Print(const char* title, const char* message){
+void Print(const char *title, const char *message) {
   cout << "[" << title << "] " << message << endl;
 }
 

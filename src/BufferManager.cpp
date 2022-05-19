@@ -4,7 +4,6 @@
 extern DeviceManager *p_device_manager;
 
 BufferManager::BufferManager() {
-  // p_device_manager_ = p_device_manager;
   bm_free_list_ = new Buffer;
   Initialize();
 }

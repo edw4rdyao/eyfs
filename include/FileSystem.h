@@ -29,7 +29,7 @@ public:
   void FormatFileSystem();
   void Update();
   Inode *AllocInode();
-  void FreeInode(int block_id);
+  void FreeInode(int inode_id);
   Buffer *AllocBlock();
   void FreeBlock(int block_id);
 };

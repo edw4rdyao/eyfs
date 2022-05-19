@@ -1,8 +1,6 @@
 #include "User.h"
 
-User::User() {
-  // p_file_manager_ = p_file_manager;
-}
+User::User() {}
 
 User::~User() {}
 
