@@ -8,15 +8,9 @@
 #include "User.h"
 #include "Utils.h"
 
+
 class Eyfs {
 private:
-  DeviceManager *p_device_manager_;
-  BufferManager *p_buffer_manager_;
-  OpenfileTable *p_openfile_table_;
-  SuperBlock *p_superblock_;
-  FileSystem *p_file_system_;
-  InodeTable *p_inode_table_;
-  FileManager *p_file_manager_;
   User *p_user_;
   bool running_;
 
@@ -25,9 +19,9 @@ public:
   // @brief 根据用户输入的命令和参数执行相关的函数
   // @return void
   void ExecuteCmd(vector<string> cmd_args);
-  // @param 
-  // @brief 
-  // @return 
+  // @param
+  // @brief
+  // @return
   void Run();
   Eyfs();
   ~Eyfs();

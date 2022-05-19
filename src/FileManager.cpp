@@ -1,12 +1,6 @@
 #include "FileManager.h"
 
-FileManager::FileManager(InodeTable *p_inode_table,
-                         OpenfileTable *p_openfile_table,
-                         FileSystem *p_file_system) {
-  p_inode_table_ = p_inode_table;
-  p_openfile_table_ = p_openfile_table_;
-  p_file_system_ = p_file_system_;
-}
+FileManager::FileManager() {}
 
 FileManager::~FileManager() {}
 

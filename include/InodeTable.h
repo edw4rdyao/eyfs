@@ -6,7 +6,7 @@
 class InodeTable {
 public:
   static const int INODENUM = 100;
-  InodeTable(FileSystem *p_file_system);
+  InodeTable();
   ~InodeTable();
   Inode *GetInode(int id);
   void PutInode(Inode *p_inode);
@@ -15,7 +15,6 @@ public:
   Inode *GetFreeInode();
   void FormatInodeTable();
   Inode it_inode_[INODENUM];
-  FileSystem *p_file_system_;
 };
 
 #endif

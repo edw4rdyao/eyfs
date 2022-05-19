@@ -1,6 +1,7 @@
 #ifndef INODE_H
 #define INODE_H
 #include <iostream>
+#include "Buffer.h"
 // @class: Inode
 // @breif: 内存索引节点，系统每一个文件，目录以及挂载的子系统都对应唯一的
 // Inode，Inode分为内存Inode和外存Inode(DiskInode),每一个内存Inode通过
@@ -60,7 +61,7 @@ public:
   // @param: 无
   // @brief: 将文件的逻辑块号转化为对应的物理块号
   // @return: 对应的物理块号
-  int BlockMap(int logic_black_id);
+  int MapBlock(int logic_black_id);
   // @param: time 当前时间
   // @brief: 更新外存Inode的最后访问时间和修改时间
   // @return: void
@@ -68,7 +69,7 @@ public:
   // @param:
   // @brief:
   // @return:
-  void CopyInode();
+  void CopyInode(Buffer *p_buffer, int id);
   // @param:
   // @brief:
   // @return:

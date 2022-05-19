@@ -1,10 +1,18 @@
 #include "BufferManager.h"
+#include <cstring>
 
-BufferManager::BufferManager(DeviceManager *p_device_manager) {
-  p_device_manager_ = p_device_manager;
+extern DeviceManager *p_device_manager;
+
+BufferManager::BufferManager() {
+  // p_device_manager_ = p_device_manager;
+  bm_free_list_ = new Buffer;
+  Initialize();
 }
 
-BufferManager::~BufferManager() {}
+BufferManager::~BufferManager() {
+  FlushBlock();
+  delete bm_free_list_;
+}
 
 void BufferManager::Initialize() {
   for (size_t i = 0; i < BufferManager::BUFFERS_NUM; i++) {
@@ -28,25 +36,117 @@ void BufferManager::Initialize() {
 }
 
 Buffer *BufferManager::GetBlock(int block_id) {
-  return NULL;
+  Buffer *p_tmp = NULL;
+  // 在当前的设备队列中搜索，找到则返回
+  if (bm_map_.find(block_id) != bm_map_.end()) {
+    p_tmp = bm_map_[block_id];
+    PopBuffer(p_tmp);
+    return p_tmp;
+  }
+  // 找不到则分配自由缓存队列
+  p_tmp = bm_free_list_->b_back_;
+  if (p_tmp == bm_free_list_) {
+    cout << "[Info] buffer free list is full" << endl;
+    return NULL;
+  }
+  PopBuffer(p_tmp);
+  bm_map_.erase(p_tmp->b_blkno_);
+  // 如果具有延迟写标志，则写入设备
+  if (p_tmp->b_flags_ & Buffer::B_DELWRT) {
+    p_device_manager->WriteImage(p_tmp->b_addr_, BUFFER_SIZE,
+                                 p_tmp->b_blkno_ * BUFFER_SIZE);
+  }
+  // 删除延迟写标志和done标志，更新设备缓存
+  p_tmp->b_flags_ &= ~(Buffer::B_DELWRT | Buffer::B_DONE);
+  p_tmp->b_blkno_ = block_id;
+  bm_map_[block_id] = p_tmp;
+  return p_tmp;
 }
 
-void BufferManager::ReleaseBuffer(Buffer *p_buffer) {}
+void BufferManager::ReleaseBuffer(Buffer *p_buffer) {
+  PushBuffer(p_buffer);
+  return;
+}
 
 Buffer *BufferManager::ReadBlock(int block_id) {
-  return NULL;
+  Buffer *p_tmp = NULL;
+  p_tmp = GetBlock(block_id);
+  // 如果该缓存块中具有延迟写标志，则直接返回
+  if (p_tmp->b_flags_ & (Buffer::B_DELWRT | Buffer::B_DONE)) {
+    return p_tmp;
+  }
+  // 否则读取设备
+  p_device_manager->ReadImage(p_tmp->b_addr_, BUFFER_SIZE,
+                              p_tmp->b_blkno_ * BUFFER_SIZE);
+  p_tmp->b_flags_ |= Buffer::B_DONE;
+  return p_tmp;
 }
 
-void BufferManager::WriteBlock(Buffer *p_buffer) {}
+void BufferManager::WriteBlock(Buffer *p_buffer) {
+  // 清除延迟写标志
+  p_buffer->b_flags_ &= ~(Buffer::B_DELWRT);
+  p_device_manager->WriteImage(p_buffer->b_addr_, BUFFER_SIZE,
+                               p_buffer->b_blkno_ * BUFFER_SIZE);
+  // 清楚busy标志
+  p_buffer->b_flags_ |= Buffer::B_DONE;
+  ReleaseBuffer(p_buffer);
+  return;
+}
 
-void BufferManager::WriteBlockDelay(Buffer *p_buffer) {}
+void BufferManager::WriteBlockDelay(Buffer *p_buffer) {
+  // 加BDONE标志允许其他进程使用磁盘内容
+  p_buffer->b_flags_ |= (Buffer::B_DELWRT | Buffer::B_DONE);
+  ReleaseBuffer(p_buffer);
+  return;
+}
 
-void BufferManager::ClearBuffer(Buffer *p_buffer) {}
+void BufferManager::ClearBuffer(Buffer *p_buffer) {
+  memset(p_buffer->b_addr_, 0, BUFFER_SIZE);
+  return;
+}
 
-void BufferManager::FlushBlock() {}
+void BufferManager::FlushBlock() {
+  // 将所有未写入的缓存写入到设备中
+  Buffer *p_tmp = NULL;
+  for (size_t i = 0; i < BUFFERS_NUM; i++) {
+    p_tmp = bm_buffers_ + i;
+    if (p_tmp->b_flags_ & Buffer::B_DELWRT) {
+      p_tmp->b_flags_ &= ~(Buffer::B_DELWRT);
+      p_device_manager->WriteImage(p_tmp->b_addr_, BUFFER_SIZE,
+                                   p_tmp->b_blkno_ * BUFFER_SIZE);
+      p_tmp->b_flags_ |= Buffer::B_DONE;
+    }
+  }
+}
 
-void BufferManager::FormatBlock() {}
+void BufferManager::FormatBlock() {
+  // 初始化每块缓存以及缓存队列
+  Buffer empty_buffer;
+  for (size_t i = 0; i < BUFFERS_NUM; i++) {
+    memcpy(bm_buffers_ + i, &empty_buffer, sizeof(Buffer));
+  }
+  Initialize();
+}
 
-void BufferManager::PushBuffer(Buffer *p_buffer) {}
+void BufferManager::PushBuffer(Buffer *p_buffer) {
+  if (p_buffer->b_back_ == NULL) {
+    return;
+  }
+  p_buffer->b_forw_ = bm_free_list_->b_forw_;
+  p_buffer->b_back_ = bm_free_list_;
+  bm_free_list_->b_forw_->b_back_ = p_buffer;
+  bm_free_list_->b_forw_ = p_buffer;
+  return;
+}
 
-void BufferManager::PopBuffer(Buffer *p_buffer) {}
+void BufferManager::PopBuffer(Buffer *p_buffer) {
+  // 将缓存块从队列中移除
+  if (p_buffer->b_back_ == NULL) {
+    return;
+  }
+  p_buffer->b_forw_->b_back_ = p_buffer->b_back_;
+  p_buffer->b_back_->b_forw_ = p_buffer->b_forw_;
+  p_buffer->b_back_ = NULL;
+  p_buffer->b_forw_ = NULL;
+  return;
+}

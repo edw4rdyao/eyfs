@@ -3,7 +3,9 @@
 #include "Buffer.h"
 #include "DeviceManager.h"
 #include <iostream>
+#include <unordered_map>
 using namespace std;
+
 // @class: BufferManager
 // @brief: 缓存管理，管理缓存控制块Buffer
 class BufferManager {
@@ -57,17 +59,18 @@ public:
   // @param:
   // @brief:
   // @return:
-  BufferManager(DeviceManager *p_device_manager);
+  BufferManager();
   // @param:
   // @brief:
   // @return:
   ~BufferManager();
 
 private:
-  DeviceManager *p_device_manager_; // 磁盘设备管理
+  // DeviceManager *p_device_manager_; // 磁盘设备管理
   Buffer *bm_free_list_;            // 缓存控制块的自由缓存队列
   Buffer bm_buffers_[BUFFERS_NUM];  // 缓存控制块数组
   unsigned char bm_mem_buffers_[BUFFERS_NUM][BUFFER_SIZE]; // 缓存区数组
+  unordered_map<int, Buffer *> bm_map_; // 物理块和缓存块的映射
 };
 
 #endif

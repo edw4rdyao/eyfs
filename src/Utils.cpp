@@ -1,4 +1,4 @@
-#include"Utils.h"
+#include "Utils.h"
 
 void DisplayInfomation() {
   cout << "              ____    \n";
@@ -18,6 +18,10 @@ vector<string> ParseCmd(string cmd) {
     cmd_args.push_back(tmp);
   }
   return cmd_args;
+}
+
+void Print(const char* title, const char* message){
+  cout << "[" << title << "] " << message << endl;
 }
 
 void PrintLog() {

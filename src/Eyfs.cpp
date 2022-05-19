@@ -1,37 +1,43 @@
 #include "Eyfs.h"
 
+DeviceManager *p_device_manager;
+BufferManager *p_buffer_manager;
+OpenfileTable *p_openfile_table;
+SuperBlock *p_superblock;
+FileSystem *p_file_system;
+InodeTable *p_inode_table;
+FileManager *p_file_manager;
+User *p_user;
+
 Eyfs::Eyfs() {
   // 建立文件系统数据结构对象之间的勾连
-  p_device_manager_ = new DeviceManager("MyDisk.img");
-  p_buffer_manager_ = new BufferManager(p_device_manager_);
-  p_openfile_table_ = new OpenfileTable();
-  p_superblock_ = new SuperBlock();
-  p_file_system_ =
-      new FileSystem(p_superblock_, p_buffer_manager_, p_device_manager_);
-  p_inode_table_ = new InodeTable(p_file_system_);
-  p_file_manager_ =
-      new FileManager(p_inode_table_, p_openfile_table_, p_file_system_);
-  p_user_ = new User(p_file_manager_);
-  p_file_manager_->p_user_ = p_user_;
+  p_device_manager = new DeviceManager("MyDisk.img");
+  p_buffer_manager = new BufferManager();
+  p_openfile_table = new OpenfileTable();
+  p_superblock = new SuperBlock();
+  p_file_system = new FileSystem();
+  p_inode_table = new InodeTable();
+  p_file_manager = new FileManager();
+  p_user_ = new User();
   // 检查镜像文件是否存在，格式化文件系统或者加载文件系统
-  if (p_device_manager_->CheckImage()) {
+  if (p_device_manager->CheckImage()) {
     cout << "[Info] filesystem loading successfully" << endl;
     // 读入SuperBlock
-    p_device_manager_->ReadImage(p_superblock_, sizeof(SuperBlock),
+    p_device_manager->ReadImage(p_superblock, sizeof(SuperBlock),
                                  FileSystem::SUPERBLOCK_START_ADDR);
     if (DEBUG) {
       cout << "[Superblock Infomation] ";
-      cout << "s_isize:" << p_superblock_->s_isize_ << "  ";
-      cout << "s_fsize:" << p_superblock_->s_fsize_ << "  ";
-      cout << "s_nfree:" << p_superblock_->s_nfree_ << "  ";
-      cout << "s_ninode:" << p_superblock_->s_ninode_ << endl;
+      cout << "s_isize:" << p_superblock->s_isize_ << "  ";
+      cout << "s_fsize:" << p_superblock->s_fsize_ << "  ";
+      cout << "s_nfree:" << p_superblock->s_nfree_ << "  ";
+      cout << "s_ninode:" << p_superblock->s_ninode_ << endl;
     }
     // TODO 读入当前用户列表
 
   } else {
     cout << "[Info] filesystem image not exist, is creating and formating file "
             "system...\n";
-    p_file_system_->FormatFileSystem();
+    p_file_system->FormatFileSystem();
     // TODO root用户创建基础文件夹
 
     cout << "[Info] filesystem format sucessfully" << endl;
@@ -40,14 +46,14 @@ Eyfs::Eyfs() {
 }
 
 Eyfs::~Eyfs() {
-  delete p_device_manager_;
-  delete p_buffer_manager_;
-  delete p_openfile_table_;
-  delete p_superblock_;
-  delete p_file_system_;
-  delete p_inode_table_;
-  delete p_file_manager_;
-  delete p_user_;
+  delete p_device_manager;
+  delete p_buffer_manager;
+  delete p_openfile_table;
+  delete p_superblock;
+  delete p_file_system;
+  delete p_inode_table;
+  delete p_file_manager;
+  delete p_user;
 }
 
 void Eyfs::ExecuteCmd(vector<string> cmd_args) {

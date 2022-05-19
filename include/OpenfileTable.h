@@ -5,8 +5,6 @@
 class OpenfileTable {
 public:
   static const int FILENUM = 100;
-  OpenfileTable();
-  ~OpenfileTable();
   File *AllocFile();
   void CloseFile(File *p_file);
   void FormatOpenFileTable();

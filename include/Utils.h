@@ -25,4 +25,9 @@ vector<string> ParseCmd(string cmd);
 // @return:
 void PrintLog();
 
+// @param
+// @brief
+// @return
+void Print(const char* title, const char* message);
+
 #endif

@@ -21,7 +21,7 @@ public:
   // @return: 
   void SetFile(int fd, File* p_file);
   // 指向系统文件打开表
-  File* ProcessOpenFilesTable[FILESNUM];
+  File* process_openfile_table_[FILESNUM];
 };
 
 #endif
