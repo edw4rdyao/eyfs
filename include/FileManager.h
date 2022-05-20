@@ -52,7 +52,7 @@ public:
   // @return:
   Inode *SearchDirectory(enum FileManager::DirectorySearchMode mode);
   Inode *MakeInode(unsigned int mode);
-  void WriteDirectory(Inode p_inode);
+  void WriteDirectory(Inode* p_inode);
   void ChangeDirectory();
   void Unlink();
   void List();

@@ -75,16 +75,53 @@ void FileManager::OpenCommon(Inode *p_inode, int mode, int trans) {
       p_file->f_count_--;
     }
     p_inode_table->PutInode(p_inode);
+    return;
   }
+  return;
 }
 
-void FileManager::Close() {}
+void FileManager::Close() {
+  int fd = p_user->u_args_[0];
+  File *p_file = p_user->u_openfiles_.GetFile(fd);
+  if (p_file == NULL) {
+    Print("FileManager Info", "get file failed");
+    return;
+  }
+  // 释放打开文件描述符fd，递减File结构引用计数
+  p_user->u_openfiles_.SetFile(fd, NULL);
+  p_openfile_table->CloseFile(p_file);
+  return;
+}
 
-void FileManager::Seek() {}
+void FileManager::Seek() {
+  File *p_file = NULL;
+  int fd = p_user->u_args_[0];
+  p_file = p_user->u_openfiles_.GetFile(fd);
+  if (p_file == NULL) {
+    Print("FileManager Info", "get file failed");
+    return;
+  }
+  int offset = p_user->u_args_[1];
+  switch (p_user->u_args_[2]) {
+  case 0:
+    p_file->f_offset_ = offset;
+    break;
+  case 1:
+    p_file->f_offset_ += offset;
+    break;
+  case 2:
+    p_file->f_offset_ = p_file->f_inode_->i_size_ + offset;
+    break;
+  default:
+    Print("FileManager Info", "seek file param error");
+    break;
+  }
+  return;
+}
 
-void FileManager::Read() {}
+void FileManager::Read() { ReadWriteCommon(File::F_READ); }
 
-void FileManager::Write() {}
+void FileManager::Write() { ReadWriteCommon(File::F_WRITE); }
 
 void FileManager::ReadWriteCommon(enum File::FileFlags mode) {}
 
@@ -197,12 +234,62 @@ Inode *FileManager::SearchDirectory(enum DirectorySearchMode mode) {
   return NULL;
 }
 
-Inode *FileManager::MakeInode(unsigned int mode) { return NULL; }
+Inode *FileManager::MakeInode(unsigned int mode) {
+  Inode *p_inode;
+  // 分配一个空闲DiskInode，里面内容已全部清空
+  p_inode = p_file_system->AllocInode();
+  if (p_inode == NULL) {
+    Print("FileManager Info", "alloc inode failed");
+    return NULL;
+  }
+  p_inode->i_flag_ |= (Inode::I_ACC | Inode::I_UPD);
+  p_inode->i_mode_ = mode | Inode::IALLOC;
+  p_inode->i_nlink_ = 1;
+  // 将目录项写入user，随后写入目录文件
+  WriteDirectory(p_inode);
+  return p_inode;
+}
 
-void FileManager::WriteDirectory(Inode p_inode) {}
+void FileManager::WriteDirectory(Inode *p_inode) {
+  // 设置目录项信息
+  p_user->u_dir_entry_.inode_id_ = p_inode->i_id_;
+  memcpy(p_user->u_dir_entry_.name_, p_user->u_dir_buffer_,
+         DirectoryEntry::DIRSIZE);
+  p_user->u_ioparam.io_count_ = DirectoryEntry::DIRSIZE + 4;
+  p_user->u_ioparam.io_start_addr_ = (unsigned char *)&p_user->u_dir_entry_;
+  // 将目录项写入父目录文件
+  p_user->u_pdir_parent_->WriteInode();
+  p_inode_table->PutInode(p_user->u_pdir_parent_);
+  return;
+}
 
 void FileManager::ChangeDirectory() {}
 
-void FileManager::Unlink() {}
+void FileManager::Unlink() {
+  Inode *p_inode = NULL;
+  Inode *p_inode_delete = NULL;
+  p_inode_delete = SearchDirectory(FileManager::DELETE);
+  if (p_inode_delete == NULL) {
+    Print("FileManager Info", "search directory to be deleted failed");
+    return;
+  }
+  p_inode = p_inode_table->GetInode(p_user->u_dir_entry_.inode_id_);
+  if (p_inode == NULL) {
+    Print("FileManager Info", "get inode failed");
+    return;
+  }
+  // 写入清零后的目录项
+  p_user->u_ioparam.io_offset_ -= (DirectoryEntry::DIRSIZE + 4);
+  p_user->u_ioparam.io_start_addr_ = (unsigned char *)&p_user->u_dir_entry_;
+  p_user->u_ioparam.io_count_ = DirectoryEntry::DIRSIZE + 4;
+  p_user->u_dir_entry_.inode_id_ = 0;
+  p_inode_delete->WriteInode();
+  // 修改Inode
+  p_inode->i_nlink_--;
+  p_inode->i_flag_ |= Inode::I_UPD;
+  p_inode_table->PutInode(p_inode_delete);
+  p_inode_table->PutInode(p_inode);
+  return;
+}
 
 void FileManager::List() {}
