@@ -18,7 +18,7 @@ extern User *p_user;
 FileSystem::FileSystem() {}
 
 FileSystem::~FileSystem() {
-  // TODO: 更新文件系统
+  Update();
 }
 
 void FileSystem::FormatFileSystem() {

@@ -64,13 +64,14 @@ public:
   unsigned int u_ar0[1024];
   int u_args_[5];              // 系统调用参数
   string u_dir_param_;         // 系统调用参数
-  Inode *u_dir_current_;       // 当前目录的Inode指针
-  Inode *u_dir_parent_;        // 当前目录的父目录的Inode指针
+  Inode *u_pdir_current_;      // 当前目录的Inode指针
+  Inode *u_pdir_parent_;       // 当前目录的父目录的Inode指针
   DirectoryEntry u_dir_entry_; // 当前的目录项
-  string u_dir_fact_;          // 当前目录完整路径
-  ErrorCode u_error_code_;     // 错误码
-  OpenFiles u_openfiles_;      // 当前打开文件对象
-  IOParameter u_ioparam;       // 当前读写描述符
+  char u_dir_buffer_[DirectoryEntry::DIRSIZE]; // 当前路径分量
+  string u_dir_fact_;                          // 当前目录完整路径
+  ErrorCode u_error_code_;                     // 错误码
+  OpenFiles u_openfiles_;                      // 当前打开文件对象
+  IOParameter u_ioparam;                       // 当前读写描述符
 };
 
 #endif
