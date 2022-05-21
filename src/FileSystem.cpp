@@ -17,11 +17,11 @@ extern User *p_user;
 
 FileSystem::FileSystem() {}
 
-FileSystem::~FileSystem() {
-  Update();
-}
+FileSystem::~FileSystem() { Update(); }
 
 void FileSystem::FormatFileSystem() {
+  if (DEBUG)
+    Print("FileSystem Info", "execute fuction FormatFileSystem()");
   // [SuperBlock区 DiskInode区 数据块区]
   // 首先格式化SuperBlock并写入
   p_superblock->s_isize_ = FileSystem::INODE_ZONE_SIZE;
@@ -79,7 +79,8 @@ void FileSystem::FormatFileSystem() {
 }
 
 void FileSystem::Update() {
-  SuperBlock *p_superblock;
+  if (DEBUG)
+    Print("FileSystem Info", "execute fuction Update()");
   Buffer *p_buffer;
   p_superblock->s_fmod_ = 0;
   p_superblock->s_time_ = (int)time(0);
@@ -88,7 +89,7 @@ void FileSystem::Update() {
     int *p = (int *)p_superblock + i * 128;
     p_buffer =
         p_buffer_manager->GetBlock(FileSystem::SUPERBLOCK_START_ADDR + i);
-    memcpy(p_buffer, p, FileSystem::BLOCK_SIZE);
+    memcpy(p_buffer->b_addr_, p, FileSystem::BLOCK_SIZE);
     p_buffer_manager->WriteBlock(p_buffer);
   }
   p_inode_table->UpdateInodeTable();
@@ -97,9 +98,8 @@ void FileSystem::Update() {
 }
 
 Inode *FileSystem::AllocInode() {
-  if(DEBUG){
-    Print("FileSystem Info", "begin alloc inode");
-  }
+  if (DEBUG)
+    Print("FileSystem Info", "execute fuction AllocInode()");
   Buffer *p_buffer;
   Inode *p_inode;
   int inode_id = -1;
@@ -154,9 +154,8 @@ Inode *FileSystem::AllocInode() {
 }
 
 void FileSystem::FreeInode(int inode_id) {
-  if(DEBUG){
-    Print("FileSystem Info", "begin free inode");
-  }
+  if (DEBUG)
+    Print("FileSystem Info", "execute fuction FreeInode(...)");
   // 如果超级块直接管理的空闲外存Inode超过100个，
   // 同样让释放的外存Inode散落在磁盘Inode区中
   if (p_superblock->s_ninode_ >= 100) {
@@ -169,7 +168,7 @@ void FileSystem::FreeInode(int inode_id) {
 }
 
 Buffer *FileSystem::AllocBlock() {
-  if(DEBUG){
+  if (DEBUG) {
     Print("FileSystem Info", "begin alloc block");
   }
   int block_id = 0;
@@ -203,9 +202,8 @@ Buffer *FileSystem::AllocBlock() {
 }
 
 void FileSystem::FreeBlock(int block_id) {
-  if(DEBUG){
-    Print("FileSystem Info", "begin free block");
-  }
+  if (DEBUG)
+    Print("FileSystem Info", "execute fuction FreeBlock(...)");
   Buffer *p_buffer = NULL;
   // SuperBlock中直接管理空闲磁盘块号的栈已满
   if (p_superblock->s_nfree_ >= 100) {

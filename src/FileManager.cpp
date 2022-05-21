@@ -18,6 +18,8 @@ FileManager::FileManager() {}
 FileManager::~FileManager() {}
 
 void FileManager::Open() {
+  if (DEBUG)
+    Print("FileManager Info", "execute fuction Open()");
   Inode *p_inode = NULL;
   p_inode = SearchDirectory(FileManager::OPEN);
   if (p_inode == NULL) {
@@ -29,6 +31,8 @@ void FileManager::Open() {
 }
 
 void FileManager::Create() {
+  if (DEBUG)
+    Print("FileManager Info", "execute fuction Create()");
   Inode *p_inode = NULL;
   unsigned int mode = p_user->u_args_[1];
   // 搜索目录的模式为1，表示创建；若父目录不可写，出错返回
@@ -53,6 +57,8 @@ void FileManager::Create() {
 }
 
 void FileManager::OpenCommon(Inode *p_inode, int mode, int trans) {
+  if (DEBUG)
+    Print("FileManager Info", "execute fuction OpenCommon(...)");
   if (trans == 1) {
     p_inode->TruncateInode();
   }
@@ -81,6 +87,8 @@ void FileManager::OpenCommon(Inode *p_inode, int mode, int trans) {
 }
 
 void FileManager::Close() {
+  if (DEBUG)
+    Print("FileManager Info", "execute fuction Close()");
   int fd = p_user->u_args_[0];
   File *p_file = p_user->u_openfiles_.GetFile(fd);
   if (p_file == NULL) {
@@ -94,6 +102,8 @@ void FileManager::Close() {
 }
 
 void FileManager::Seek() {
+  if (DEBUG)
+    Print("FileManager Info", "execute fuction Seek()");
   File *p_file = NULL;
   int fd = p_user->u_args_[0];
   p_file = p_user->u_openfiles_.GetFile(fd);
@@ -123,9 +133,38 @@ void FileManager::Read() { ReadWriteCommon(File::F_READ); }
 
 void FileManager::Write() { ReadWriteCommon(File::F_WRITE); }
 
-void FileManager::ReadWriteCommon(enum File::FileFlags mode) {}
+void FileManager::ReadWriteCommon(enum File::FileFlags mode) {
+  if (DEBUG)
+    Print("FileManager Info", "execute fuction ReadWriteCommon(...)");
+  File *p_file;
+  p_file = p_user->u_openfiles_.GetFile(p_user->u_args_[0]);
+  if (p_file == NULL) {
+    Print("FileManager Info", "get file failed");
+    return;
+  }
+  if ((p_file->f_flag_ & mode) == 0) {
+    p_user->u_error_code_ = User::U_EACCES;
+    return;
+  }
+  // 设置读取参数
+  p_user->u_ioparam.io_start_addr_ = (unsigned char *)p_user->u_args_[1];
+  p_user->u_ioparam.io_count_ = p_user->u_args_[2];
+  p_user->u_ioparam.io_offset_ = p_file->f_offset_;
+  if (mode == File::F_READ) {
+    p_file->f_inode_->ReadInode();
+  } else {
+    p_file->f_inode_->WriteInode();
+  }
+  // 根据读写字数，移动文件读写偏移指针
+  p_file->f_offset_ += (p_user->u_args_[2] - p_user->u_ioparam.io_count_);
+  // 返回实际读写的字节数，修改存放系统调用返回值的核心栈单元
+  p_user->u_ar0[User::EAX] = p_user->u_args_[2] - p_user->u_ioparam.io_count_;
+  return;
+}
 
 Inode *FileManager::SearchDirectory(enum DirectorySearchMode mode) {
+  if (DEBUG)
+    Print("FileManager Info", "execute fuction SearchDirectory(...)");
   int entry_offset = 0;
   unsigned int index = 0, nindex = 0;
   Inode *p_inode = p_user->u_pdir_current_;
@@ -148,7 +187,7 @@ Inode *FileManager::SearchDirectory(enum DirectorySearchMode mode) {
     if ((p_inode->i_mode_ & Inode::IFMT) != Inode::IFDIR) {
       p_user->u_error_code_ = User::U_ENOTDIR;
     }
-    // 将Pathname中当前准备进行匹配的路径分量拷贝到u.u_dbuf[]中，
+    // 将pathname中当前准备进行匹配的路径分量拷贝
     // 便于和目录项进行比较
     nindex = p_user->u_dir_param_.find_first_of('/', index);
     memset(p_user->u_dir_buffer_, 0, sizeof(p_user->u_dir_buffer_));
@@ -156,7 +195,7 @@ Inode *FileManager::SearchDirectory(enum DirectorySearchMode mode) {
            (nindex == (unsigned int)string::npos ? p_user->u_dir_param_.length()
                                                  : nindex) -
                index);
-    index = nindex;
+    index = nindex + 1;
     // 内部循环对于路径分量搜索，目录项，使用ioparam记录
     p_user->u_ioparam.io_offset_ = 0;
     p_user->u_ioparam.io_count_ = p_inode->i_size_ / sizeof(DirectoryEntry);
@@ -207,7 +246,7 @@ Inode *FileManager::SearchDirectory(enum DirectorySearchMode mode) {
         continue;
       }
       if (!memcmp(p_user->u_dir_buffer_, &p_user->u_dir_entry_.name_,
-                  sizeof(DirectoryEntry))) {
+                  sizeof(DirectoryEntry) - 4)) {
         break;
       }
     }
@@ -235,6 +274,8 @@ Inode *FileManager::SearchDirectory(enum DirectorySearchMode mode) {
 }
 
 Inode *FileManager::MakeInode(unsigned int mode) {
+  if (DEBUG)
+    Print("FileManager Info", "execute fuction MakeInode(...)");
   Inode *p_inode;
   // 分配一个空闲DiskInode，里面内容已全部清空
   p_inode = p_file_system->AllocInode();
@@ -251,6 +292,8 @@ Inode *FileManager::MakeInode(unsigned int mode) {
 }
 
 void FileManager::WriteDirectory(Inode *p_inode) {
+  if (DEBUG)
+    Print("FileManager Info", "execute fuction WriteDirectory(...)");
   // 设置目录项信息
   p_user->u_dir_entry_.inode_id_ = p_inode->i_id_;
   memcpy(p_user->u_dir_entry_.name_, p_user->u_dir_buffer_,
@@ -263,9 +306,37 @@ void FileManager::WriteDirectory(Inode *p_inode) {
   return;
 }
 
-void FileManager::ChangeDirectory() {}
+void FileManager::ChangeDirectory() {
+  if (DEBUG)
+    Print("FileManager Info", "execute fuction ChangeDirectory()");
+  Inode *p_inode = NULL;
+  p_inode = SearchDirectory(FileManager::OPEN);
+  if (p_inode == NULL) {
+    Print("FileManager Info", "search directory failed");
+    return;
+  }
+  // 搜索到的文件不是目录文件
+  if ((p_inode->i_mode_ & Inode::IFMT) != Inode::IFDIR) {
+    p_user->u_error_code_ = User::U_ENOTDIR;
+    p_inode_table->PutInode(p_inode);
+    return;
+  }
+  p_user->u_pdir_current_ = p_inode;
+  // 路径不是从根目录'/'开始，则在现有完整路径后面加上当前路径分量
+  if (p_user->u_dir_param_[0] != '/') {
+    p_user->u_dir_fact_ += p_user->u_dir_param_;
+  } else {
+    p_user->u_dir_fact_ = p_user->u_dir_param_;
+  }
+  if (p_user->u_dir_fact_.back() != '/') {
+    p_user->u_dir_fact_.push_back('/');
+  }
+  return;
+}
 
 void FileManager::Unlink() {
+  if (DEBUG)
+    Print("FileManager Info", "execute fuction Unlink()");
   Inode *p_inode = NULL;
   Inode *p_inode_delete = NULL;
   p_inode_delete = SearchDirectory(FileManager::DELETE);
@@ -292,4 +363,44 @@ void FileManager::Unlink() {
   return;
 }
 
-void FileManager::List() {}
+void FileManager::List() {
+  if (DEBUG)
+    Print("FileManager Info", "execute fuction List()");
+  Inode *p_inode = p_user->u_pdir_current_;
+  Buffer *p_buffer = NULL;
+  p_user->u_ioparam.io_offset_ = 0;
+  p_user->u_ioparam.io_count_ = p_inode->i_size_ / sizeof(DirectoryEntry);
+  int count = 0;
+  while (p_user->u_ioparam.io_count_) {
+    // 正好读完一个缓存块
+    if ((p_user->u_ioparam.io_offset_ % Inode::BLOCK_SIZE) == 0) {
+      if (p_buffer) {
+        p_buffer_manager->ReleaseBuffer(p_buffer);
+      }
+      int block_id =
+          p_inode->MapBlock(p_user->u_ioparam.io_offset_ / Inode::BLOCK_SIZE);
+      p_buffer = p_buffer_manager->ReadBlock(block_id);
+    }
+    memcpy(&p_user->u_dir_entry_,
+           p_buffer->b_addr_ +
+               (p_user->u_ioparam.io_offset_ % Inode::BLOCK_SIZE),
+           sizeof(DirectoryEntry));
+    p_user->u_ioparam.io_offset_ += sizeof(DirectoryEntry);
+    p_user->u_ioparam.io_count_--;
+    // 遇到空目录项
+    if (p_user->u_dir_entry_.inode_id_ == 0) {
+      continue;
+    }
+    // 处理输出
+    p_user->u_list_ += p_user->u_dir_entry_.name_;
+    p_user->u_list_ += " ";
+    count++;
+    if (count % 7 == 0) {
+      p_user->u_list_ += "\n";
+    }
+  }
+  if (p_buffer) {
+    p_buffer_manager->ReleaseBuffer(p_buffer);
+  }
+  return;
+}

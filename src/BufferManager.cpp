@@ -1,4 +1,5 @@
 #include "BufferManager.h"
+#include "Utils.h"
 #include <cstring>
 
 extern DeviceManager *p_device_manager;
@@ -14,6 +15,8 @@ BufferManager::~BufferManager() {
 }
 
 void BufferManager::Initialize() {
+  if (DEBUG)
+    Print("BufferManager Info", "execute fuction Initialize()");
   for (size_t i = 0; i < BufferManager::BUFFERS_NUM; i++) {
     // 将每个缓存块的forward连起来
     if (i == 0) {
@@ -35,6 +38,8 @@ void BufferManager::Initialize() {
 }
 
 Buffer *BufferManager::GetBlock(int block_id) {
+  if (DEBUG)
+    Print("BufferManager Info", "execute fuction GetBlock(...)");
   Buffer *p_tmp = NULL;
   // 在当前的设备队列中搜索，找到则返回
   if (bm_map_.find(block_id) != bm_map_.end()) {
@@ -63,11 +68,15 @@ Buffer *BufferManager::GetBlock(int block_id) {
 }
 
 void BufferManager::ReleaseBuffer(Buffer *p_buffer) {
+  if (DEBUG)
+    Print("BufferManager Info", "execute fuction ReleaseBuffer(...)");
   PushBuffer(p_buffer);
   return;
 }
 
 Buffer *BufferManager::ReadBlock(int block_id) {
+  if (DEBUG)
+    Print("BufferManager Info", "execute fuction ReadBlock(...)");
   Buffer *p_tmp = NULL;
   p_tmp = GetBlock(block_id);
   // 如果该缓存块中具有延迟写标志，则直接返回
@@ -82,6 +91,8 @@ Buffer *BufferManager::ReadBlock(int block_id) {
 }
 
 void BufferManager::WriteBlock(Buffer *p_buffer) {
+  if (DEBUG)
+    Print("BufferManager Info", "execute fuction WriteBlock(...)");
   // 清除延迟写标志
   p_buffer->b_flags_ &= ~(Buffer::B_DELWRT);
   p_device_manager->WriteImage(p_buffer->b_addr_, BUFFER_SIZE,
@@ -93,6 +104,8 @@ void BufferManager::WriteBlock(Buffer *p_buffer) {
 }
 
 void BufferManager::WriteBlockDelay(Buffer *p_buffer) {
+  if (DEBUG)
+    Print("BufferManager Info", "execute fuction WriteBlockDelay(...)");
   // 加BDONE标志允许其他进程使用磁盘内容
   p_buffer->b_flags_ |= (Buffer::B_DELWRT | Buffer::B_DONE);
   ReleaseBuffer(p_buffer);
@@ -100,11 +113,15 @@ void BufferManager::WriteBlockDelay(Buffer *p_buffer) {
 }
 
 void BufferManager::ClearBuffer(Buffer *p_buffer) {
+  if (DEBUG)
+    Print("BufferManager Info", "execute fuction ClearBuffer(...)");
   memset(p_buffer->b_addr_, 0, BUFFER_SIZE);
   return;
 }
 
 void BufferManager::FlushBlock() {
+  if (DEBUG)
+    Print("BufferManager Info", "execute fuction FlushBlock()");
   // 将所有未写入的缓存写入到设备中
   Buffer *p_tmp = NULL;
   for (size_t i = 0; i < BUFFERS_NUM; i++) {
@@ -119,6 +136,8 @@ void BufferManager::FlushBlock() {
 }
 
 void BufferManager::FormatBlock() {
+  if (DEBUG)
+    Print("BufferManager Info", "execute fuction FormatBlock()");
   // 初始化每块缓存以及缓存队列
   Buffer empty_buffer;
   for (size_t i = 0; i < BUFFERS_NUM; i++) {

@@ -1,5 +1,6 @@
 #include "OpenFiles.h"
 #include "User.h"
+#include "Utils.h"
 #include <cstring>
 
 extern User *p_user;
@@ -13,6 +14,8 @@ OpenFiles::OpenFiles() {
 OpenFiles::~OpenFiles() {}
 
 int OpenFiles::AllocFreeSlot() {
+  if (DEBUG)
+    Print("OpenFiles Info", "execute fuction AllocFreeSlot()");
   for (size_t i = 0; i < OpenFiles::FILESNUM; i++) {
     if (process_openfile_table_[i] == NULL) {
       // 设置核心栈现场保护区中的EAX寄存器的值，即系统调用返回值
@@ -26,6 +29,8 @@ int OpenFiles::AllocFreeSlot() {
 }
 
 File *OpenFiles::GetFile(int fd) {
+  if (DEBUG)
+    Print("OpenFiles Info", "execute fuction GetFile(...)");
   File *p_file;
   // 如果打开文件描述符的值超出了范围
   if (fd < 0 || fd >= OpenFiles::FILESNUM) {
@@ -41,6 +46,8 @@ File *OpenFiles::GetFile(int fd) {
 }
 
 void OpenFiles::SetFile(int fd, File *p_file) {
+  if (DEBUG)
+    Print("OpenFiles Info", "execute fuction SetFile(...)");
   // 如果打开文件描述符的值超出了范围
   if (fd < 0 || fd >= OpenFiles::FILESNUM) {
     p_user->u_error_code_ = User::U_EBADF;

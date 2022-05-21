@@ -14,9 +14,8 @@ InodeTable::InodeTable() {}
 InodeTable::~InodeTable() {}
 
 Inode *InodeTable::GetInode(int id) {
-  if (DEBUG) {
-    Print("InodeTable Info", "begin get inode");
-  }
+  if (DEBUG)
+    Print("InodeTable Info", "execute fuction GetInode(...)");
   Inode *p_inode = NULL;
   // 检查是否有内存Inode拷贝
   int index = IsLoaded(id);
@@ -56,9 +55,8 @@ Inode *InodeTable::GetInode(int id) {
 }
 
 void InodeTable::PutInode(Inode *p_inode) {
-  if (DEBUG) {
-    Print("InodeTable Info", "begin put inode");
-  }
+    if (DEBUG)
+    Print("InodeTable Info", "execute fuction PutInode(...)");
   if (p_inode->i_count_ == 1) {
     // 当前进程为唯一引用inode的进程，释放inode
     if (p_inode->i_nlink_ <= 0) {
@@ -78,9 +76,8 @@ void InodeTable::PutInode(Inode *p_inode) {
 }
 
 void InodeTable::UpdateInodeTable() {
-  if (DEBUG) {
-    Print("InodeTable Info", "begin update inode table");
-  }
+    if (DEBUG)
+    Print("InodeTable Info", "execute fuction UpdateInodeTable()");
   for (size_t i = 0; i < InodeTable::INODENUM; i++) {
     // 如果Inode对象没有被上锁，即当前未被其它进程使用，可以同步到外存Inode
     // 并且count不等于0，count=0意味着该内存Inode未被任何打开文件引用，无需同步
@@ -91,9 +88,8 @@ void InodeTable::UpdateInodeTable() {
 }
 
 int InodeTable::IsLoaded(int id) {
-  if (DEBUG) {
-    Print("InodeTable Info", "begin judge the inode if loaded");
-  }
+    if (DEBUG)
+    Print("InodeTable Info", "execute fuction IsLoaded(...)");
   // 寻找外存Inode是否存在内存Inode拷贝
   for (size_t i = 0; i < InodeTable::INODENUM; i++) {
     if (it_inode_[i].i_id_ == id && it_inode_[i].i_count_ != 0) {
@@ -104,9 +100,8 @@ int InodeTable::IsLoaded(int id) {
 }
 
 Inode *InodeTable::GetFreeInode() {
-  if (DEBUG) {
-    Print("InodeTable Info", "begin get free inode");
-  }
+    if (DEBUG)
+    Print("InodeTable Info", "execute fuction GetFreeInode()");
   // 如果该内存Inode引用计数为零，则该Inode表示空闲
   for (size_t i = 0; i < InodeTable::INODENUM; i++) {
     if (it_inode_[i].i_count_ == 0) {
@@ -117,9 +112,8 @@ Inode *InodeTable::GetFreeInode() {
 }
 
 void InodeTable::FormatInodeTable() {
-  if (DEBUG) {
-    Print("InodeTable Info", "begin format inode table");
-  }
+    if (DEBUG)
+    Print("InodeTable Info", "execute fuction FormatInodeTable()");
   Inode empty_inode;
   for (size_t i = 0; i < InodeTable::INODENUM; i++) {
     memcpy(it_inode_ + i, &empty_inode, sizeof(Inode));

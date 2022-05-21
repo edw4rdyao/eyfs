@@ -30,9 +30,8 @@ Inode::Inode() {
 Inode::~Inode() {}
 
 void Inode::ReadInode() {
-  if (DEBUG) {
-    Print("Inode Info", "read inode begin");
-  }
+  if (DEBUG)
+    Print("Inode Info", "execute fuction ReadInode()");
   int logic_block_id = 0; // 文件的逻辑块号
   int block_id = 0;       // 对应的物理块号
   int offset = 0;         // 当前字符块内起始的地址
@@ -70,8 +69,9 @@ void Inode::ReadInode() {
     unsigned char *buffer_start_addr = p_buffer->b_addr_ + offset;
     if (DEBUG) {
       cout << "[Inode Info] "
-           << "buffer:" << p_buffer->b_addr_ << "  buffer offset:" << offset
-           << "  read bytes nums:" << bytes_num << endl;
+           << "buffer address:" << (void *)(p_buffer->b_addr_)
+           << "  buffer offset:" << offset << "  read bytes nums:" << bytes_num
+           << endl;
     }
     // 开始读取，成功之后更新读取位置
     memcpy(p_user->u_ioparam.io_start_addr_, buffer_start_addr, bytes_num);
@@ -85,9 +85,8 @@ void Inode::ReadInode() {
 }
 
 void Inode::WriteInode() {
-  if (DEBUG) {
-    Print("Inode Info", "write inode begin");
-  }
+  if (DEBUG)
+    Print("Inode Info", "execute fuction WriteInode()");
   int logic_block_id = 0; // 文件的逻辑块号
   int block_id = 0;       // 对应的物理块号
   int offset = 0;         // 当前字符块内起始的地址
@@ -120,8 +119,9 @@ void Inode::WriteInode() {
     unsigned char *buffer_start_addr = p_buffer->b_addr_ + offset;
     if (DEBUG) {
       cout << "[Inode Info] "
-           << "buffer:" << p_buffer->b_addr_ << "  buffer offset:" << offset
-           << "  write bytes nums:" << bytes_num << endl;
+           << "buffer address:" << (void *)(p_buffer->b_addr_)
+           << "  buffer offset:" << offset << "  write bytes nums:" << bytes_num
+           << endl;
     }
     // 写入并更新
     memcpy(buffer_start_addr, p_user->u_ioparam.io_start_addr_, bytes_num);
@@ -139,9 +139,8 @@ void Inode::WriteInode() {
 }
 
 int Inode::MapBlock(int logic_block_id) {
-  if (DEBUG) {
-    Print("Inode Info", "map block begin");
-  }
+  if (DEBUG)
+    Print("Inode Info", "execute fuction MapBlock(...)");
   Buffer *p_buffer_first = NULL, *p_buffer_second = NULL;
   int block_id = 0;
   int *index_table;
@@ -232,7 +231,8 @@ int Inode::MapBlock(int logic_block_id) {
     }
     // ?为什么还要分配呢
     block_id = index_table[index];
-    if (block_id == 0 && (p_buffer_second = p_file_system->AllocBlock()) != NULL) {
+    if (block_id == 0 &&
+        (p_buffer_second = p_file_system->AllocBlock()) != NULL) {
       // 将分配的文件数据盘块号登记在一次间接索引表中
       block_id = p_buffer_second->b_blkno_;
       index_table[index] = block_id;
@@ -249,6 +249,8 @@ int Inode::MapBlock(int logic_block_id) {
 }
 
 void Inode::UpdateInode(int time) {
+  if (DEBUG)
+    Print("Inode Info", "execute fuction UpdateInode(...)");
   Buffer *p_buffer;
   DiskInode disk_inode;
   // 当UPD和IACC标志之一被设置，才需要更新相应DiskInode
@@ -286,6 +288,8 @@ void Inode::CleanInode() {
   // 即旧文件信息。Clean()函数中不应当清除i_dev, i_number, i_flag, i_count,
   // 这是属于内存Inode而非DiskInode包含的旧文件信息，而Inode类构造函数需要
   // 将其初始化为无效值。
+  if (DEBUG)
+    Print("Inode Info", "execute fuction CleanInode()");
   i_mode_ = 0;
   i_nlink_ = 0;
   i_uid_ = -1;
@@ -299,6 +303,8 @@ void Inode::CleanInode() {
 }
 
 void Inode::CopyInode(Buffer *p_buffer, int id) {
+  if (DEBUG)
+    Print("Inode Info", "execute fuction CopyInode(...)");
   // 获取DiskInode内容引用
   DiskInode &disk_inode = *(
       DiskInode *)(p_buffer->b_addr_ +
@@ -315,4 +321,45 @@ void Inode::CopyInode(Buffer *p_buffer, int id) {
   memcpy(i_addr_, disk_inode.d_addr_, sizeof(i_addr_));
 }
 
-void Inode::TruncateInode() {}
+void Inode::TruncateInode() {
+  if (DEBUG)
+    Print("Inode Info", "execute fuction TruncateInode()");
+  // 采用FILO方式释放，以尽量使得SuperBlock中记录的空闲盘块号连续
+  for (int i = 9; i >= 0; i--) {
+    // 如果i_addr[]中第i项存在索引
+    if (i_addr_[i] != 0) {
+      if (i >= 6 && i <= 9) {
+        Buffer *p_buffer_first = p_buffer_manager->ReadBlock(i_addr_[i]);
+        int *p_first = (int *)p_buffer_first->b_addr_;
+        // 每张间接索引表记录 512/sizeof(int) =
+        // 128个磁盘块号，遍历这全部128个磁盘块
+        for (int j = 128 - 1; j >= 0; j--) {
+          if (p_first[j] != 0) {
+            // 如果是两次间接索引表，i_addr_[8]或i_addr[9]_项，
+            // 那么该字符块记录的是128个一次间接索引表存放的磁盘块号
+            if (i >= 8 && i <= 9) {
+              Buffer *p_buffer_second = p_buffer_manager->ReadBlock(p_first[j]);
+              int *p_second = (int *)p_buffer_second->b_addr_;
+              for (int k = 128 - 1; k >= 0; k--) {
+                if (p_second[k] != 0) {
+                  p_file_system->FreeBlock(p_second[k]);
+                }
+              }
+              p_buffer_manager->ReleaseBuffer(p_buffer_second);
+            }
+            p_file_system->FreeBlock(p_first[j]);
+          }
+        }
+        p_buffer_manager->ReleaseBuffer(p_buffer_first);
+      }
+      p_file_system->FreeBlock(i_addr_[i]);
+      i_addr_[i] = 0;
+    }
+  }
+  // 盘块释放完毕，文件大小清零
+  i_size_ = 0;
+  i_flag_ |= Inode::I_UPD;
+  i_mode_ &= ~(Inode::ILARG);
+  i_nlink_ = 1;
+  return;
+}
