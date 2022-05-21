@@ -9,6 +9,8 @@ User::User() {
   u_error_code_ = User::U_NOERROR;
   u_dir_param_ = "/";
   u_dir_fact_ = "/";
+  u_uid_ = 0;
+  u_gid_ = 0;
   memset(u_args_, 0, sizeof(u_args_));
 }
 
@@ -70,7 +72,23 @@ void User::Mkdir(string dir_name) {
   return;
 }
 
-void User::Create(string file_name, string mode) {}
+void User::Create(string file_name, string mode) {
+  if (!CheckDirectoryParam(file_name)) {
+    return;
+  }
+  // int mode_mask = GetInodeMode(mode);
+  // // int mode_mask = 1;
+  // if (mode_mask == 0) {
+  //   Print("Error", "mode not support");
+  //   return;
+  // }
+  // u_args_[1] = mode_mask;
+  p_file_manager->Create();
+  if (u_error_code_) {
+    HandleError(u_error_code_);
+  }
+  return;
+}
 
 void User::Delete(string file_name) {
   if (!CheckDirectoryParam(file_name)) {

@@ -63,8 +63,8 @@ void FileSystem::FormatFileSystem() {
       p_device_manager->WriteImage(free_block_manager,
                                    sizeof(free_block_manager));
     } else {
-      // *将s_nfree和s_free[100]写入free_block
-      // *参考类的数据对齐方式，所以可以直接写sizeof(s_free_)+sizeof(s_nfree_)
+      // 将s_nfree和s_free[100]写入free_block
+      // 参考类的数据对齐方式，所以可以直接写sizeof(s_free_)+sizeof(s_nfree_)
       memcpy(free_block, &p_superblock->s_nfree_,
              sizeof(p_superblock->s_free_) + sizeof(p_superblock->s_nfree_));
       p_device_manager->WriteImage(free_block, FileSystem::BLOCK_SIZE);

@@ -62,7 +62,10 @@ public:
   void Ls();
   bool CheckDirectoryParam(string dir_name);
   void HandleError(enum ErrorCode err_code);
+  int GetInodeMode(string mode);
   unsigned int u_ar0[1024];
+  int u_uid_;                   // 用户id
+  int u_gid_;                   // 用户组id
   int u_args_[5];              // 系统调用参数
   string u_dir_param_;         // 系统调用参数
   Inode *u_pdir_current_;      // 当前目录的Inode指针

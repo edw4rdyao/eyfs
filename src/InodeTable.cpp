@@ -37,7 +37,8 @@ Inode *InodeTable::GetInode(int id) {
     } else {
       // 分配成功
       if (DEBUG) {
-        cout << "[InodeTable Info] inode is not loaded but alloced successfully.  "
+        cout << "[InodeTable Info] inode is not loaded but alloced "
+                "successfully.  "
              << "id:" << id << endl;
       }
       p_inode->i_id_ = id;
@@ -55,7 +56,7 @@ Inode *InodeTable::GetInode(int id) {
 }
 
 void InodeTable::PutInode(Inode *p_inode) {
-    if (DEBUG)
+  if (DEBUG)
     Print("InodeTable Info", "execute fuction PutInode(...)");
   if (p_inode->i_count_ == 1) {
     // 当前进程为唯一引用inode的进程，释放inode
@@ -76,7 +77,7 @@ void InodeTable::PutInode(Inode *p_inode) {
 }
 
 void InodeTable::UpdateInodeTable() {
-    if (DEBUG)
+  if (DEBUG)
     Print("InodeTable Info", "execute fuction UpdateInodeTable()");
   for (size_t i = 0; i < InodeTable::INODENUM; i++) {
     // 如果Inode对象没有被上锁，即当前未被其它进程使用，可以同步到外存Inode
@@ -88,7 +89,7 @@ void InodeTable::UpdateInodeTable() {
 }
 
 int InodeTable::IsLoaded(int id) {
-    if (DEBUG)
+  if (DEBUG)
     Print("InodeTable Info", "execute fuction IsLoaded(...)");
   // 寻找外存Inode是否存在内存Inode拷贝
   for (size_t i = 0; i < InodeTable::INODENUM; i++) {
@@ -100,7 +101,7 @@ int InodeTable::IsLoaded(int id) {
 }
 
 Inode *InodeTable::GetFreeInode() {
-    if (DEBUG)
+  if (DEBUG)
     Print("InodeTable Info", "execute fuction GetFreeInode()");
   // 如果该内存Inode引用计数为零，则该Inode表示空闲
   for (size_t i = 0; i < InodeTable::INODENUM; i++) {
@@ -112,7 +113,7 @@ Inode *InodeTable::GetFreeInode() {
 }
 
 void InodeTable::FormatInodeTable() {
-    if (DEBUG)
+  if (DEBUG)
     Print("InodeTable Info", "execute fuction FormatInodeTable()");
   Inode empty_inode;
   for (size_t i = 0; i < InodeTable::INODENUM; i++) {

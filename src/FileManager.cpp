@@ -286,6 +286,8 @@ Inode *FileManager::MakeInode(unsigned int mode) {
   p_inode->i_flag_ |= (Inode::I_ACC | Inode::I_UPD);
   p_inode->i_mode_ = mode | Inode::IALLOC;
   p_inode->i_nlink_ = 1;
+  p_inode->i_uid_ = p_user->u_uid_;
+  p_inode->i_gid_ = p_user->u_gid_;
   // 将目录项写入user，随后写入目录文件
   WriteDirectory(p_inode);
   return p_inode;
@@ -390,6 +392,20 @@ void FileManager::List() {
     // 遇到空目录项
     if (p_user->u_dir_entry_.inode_id_ == 0) {
       continue;
+    }
+    if (DEBUG) {
+      cout << "[FileManager Info] "
+           << "search inode id:" << p_user->u_dir_entry_.inode_id_ << endl;
+      Inode *p_tmp_inode =
+          p_inode_table->GetInode(p_user->u_dir_entry_.inode_id_);
+      if (p_tmp_inode) {
+        cout << "[FileManager Info] "
+             << "inode uid:" << p_tmp_inode->i_uid_
+             << "  inode gid:" << p_tmp_inode->i_gid_
+             << "  inode mode:" << p_tmp_inode->i_mode_
+             << "  inode nlink:" << p_tmp_inode->i_nlink_
+             << "  inode acess time:" << p_tmp_inode->i_last_read_ << endl;
+      }
     }
     // 处理输出
     p_user->u_list_ += p_user->u_dir_entry_.name_;

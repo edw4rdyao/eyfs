@@ -1,7 +1,7 @@
 #ifndef INODE_H
 #define INODE_H
-#include <iostream>
 #include "Buffer.h"
+#include <iostream>
 // @class: Inode
 // @breif: 内存索引节点，系统每一个文件，目录以及挂载的子系统都对应唯一的
 // Inode，Inode分为内存Inode和外存Inode(DiskInode),每一个内存Inode通过
