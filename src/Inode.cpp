@@ -25,6 +25,8 @@ Inode::Inode() {
     i_addr_[i] = 0;
   }
   i_last_read_ = -1;
+  i_acess_time_ = 0;
+  i_modify_time_ = 0;
 }
 
 Inode::~Inode() {}

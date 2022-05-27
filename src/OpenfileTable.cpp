@@ -12,9 +12,10 @@ File *OpenfileTable::AllocFile() {
     Print("OpenfileTable Info", "execute fuction AllocFile()");
   int fd = p_user->u_openfiles_.AllocFreeSlot();
   if (fd < 0) {
-    Print("OpenfileTable Info", "alloc field");
+    Print("OpenfileTable Info", "alloc failed");
     return NULL;
   }
+  cout << "[OpenfileTable Info]" << "open file: " << fd << endl; 
   // 寻找空闲项
   for (size_t i = 0; i < OpenfileTable::FILENUM; i++) {
     if (file_table_[i].f_count_ == 0) {

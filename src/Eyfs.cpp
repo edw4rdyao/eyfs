@@ -63,7 +63,8 @@ Eyfs::Eyfs() {
 }
 
 Eyfs::~Eyfs() {
-  Print("Info", "delete object");
+  if (DEBUG)
+    Print("Info", "delete object");
   delete p_file_system;
   delete p_inode_table;
   delete p_file_manager;
@@ -72,7 +73,8 @@ Eyfs::~Eyfs() {
   delete p_superblock;
   delete p_buffer_manager;
   delete p_device_manager;
-  Print("Info", "delete object over");
+  if (DEBUG)
+    Print("Info", "delete object over");
 }
 
 void Eyfs::ExecuteCmd(vector<string> cmd_args) {
@@ -100,6 +102,47 @@ void Eyfs::ExecuteCmd(vector<string> cmd_args) {
       return;
     }
     p_user->Delete(cmd_args[1]);
+  } else if (cmd_args[0] == "create") {
+    string mode = "";
+    if (cmd_args.size() == 3) {
+      mode = cmd_args[2];
+    } else if (cmd_args.size() > 3 || cmd_args.size() < 2) {
+      Print("Error", "command param is error using 'help' to check");
+      return;
+    }
+    p_user->Create(cmd_args[1], mode);
+  } else if (cmd_args[0] == "open") {
+    if (cmd_args.size() != 3) {
+      Print("Error", "command param is error using 'help' to check");
+      return;
+    }
+    p_user->Open(cmd_args[1], cmd_args[2]);
+  } else if (cmd_args[0] == "seek") {
+    if (cmd_args.size() != 4) {
+      Print("Error", "command param is error using 'help' to check");
+      return;
+    }
+    p_user->Seek(cmd_args[1], cmd_args[2], cmd_args[3]);
+  } else if (cmd_args[0] == "close") {
+    if (cmd_args.size() != 2) {
+      Print("Error", "command param is error using 'help' to check");
+      return;
+    }
+    p_user->Close(cmd_args[1]);
+  } else if (cmd_args[0] == "read") {
+    if (cmd_args.size() != 4) {
+      Print("Error", "command param is error using 'help' to check");
+      return;
+    }
+    p_user->Read(cmd_args[1], cmd_args[2], cmd_args[3]);
+  } else if (cmd_args[0] == "write") {
+    if (cmd_args.size() != 4) {
+      Print("Error", "command param is error using 'help' to check");
+      return;
+    }
+    p_user->Write(cmd_args[1], cmd_args[2], cmd_args[3]);
+  } else {
+    Print("Error", "command not found");
   }
   return;
 }

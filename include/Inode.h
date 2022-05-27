@@ -2,6 +2,7 @@
 #define INODE_H
 #include "Buffer.h"
 #include <iostream>
+
 // @class: Inode
 // @breif: 内存索引节点，系统每一个文件，目录以及挂载的子系统都对应唯一的
 // Inode，Inode分为内存Inode和外存Inode(DiskInode),每一个内存Inode通过
@@ -22,11 +23,7 @@ public:
   static const unsigned int IFCHR = 0x2000;  // 字符设备特殊类型文件
   static const unsigned int IFBLK = 0x6000;  // 块设备特殊类型文件
   static const unsigned int ILARG = 0x1000;  // 大型或巨型文件
-  // static const unsigned int ISUID =
-  //     0x800; // 执行时文件时将用户的有效用户ID修改为文件所有者uid
-  // static const unsigned int ISGID =
-  //     0x400; // 执行时文件时将用户的有效组ID修改为文件所有者的Group ID
-  static const unsigned int ISVTX = 0x200; // 使用后仍然位于交换区上的正文段
+  static const unsigned int ISVTX = 0x200; // 使用后仍然位于交换区上
   static const unsigned int IREAD = 0x100; // 对文件的读权限
   static const unsigned int IWRITE = 0x80; // 对文件的写权限
   static const unsigned int IEXEC = 0x40;  // 对文件的执行权限
@@ -88,6 +85,8 @@ public:
   short i_gid_;         // 文件所有者的用户组id
   int i_size_;          // 文件大小
   int i_addr_[10];      // 用于文件逻辑块转换的基本索引表
-  int i_last_read_;     // 存放当前Inode最近一次读取时间
+  int i_last_read_;     // 存放当前Inode最近一次读取的逻辑块号
+  int i_acess_time_;    // 最后访问时间
+  int i_modify_time_;   // 最后修改时间
 };
 #endif

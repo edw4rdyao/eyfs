@@ -63,6 +63,7 @@ public:
   bool CheckDirectoryParam(string dir_name);
   void HandleError(enum ErrorCode err_code);
   int GetInodeMode(string mode);
+  int GetFileMode(string mode);
   unsigned int u_ar0[1024];
   int u_uid_;                   // 用户id
   int u_gid_;                   // 用户组id
