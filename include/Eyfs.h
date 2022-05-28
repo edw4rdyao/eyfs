@@ -6,12 +6,11 @@
 #include "FileSystem.h"
 #include "SuperBlock.h"
 #include "User.h"
+#include "UserManager.h"
 #include "Utils.h"
-
 
 class Eyfs {
 private:
-  User *p_user_;
   bool running_;
 
 public:

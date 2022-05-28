@@ -1,7 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#define DEBUG 1
+#define DEBUG 0
 
 #include <iostream>
 #include <sstream>

@@ -6,7 +6,7 @@ extern DeviceManager *p_device_manager;
 
 BufferManager::BufferManager() {
   bm_free_list_ = new Buffer;
-  Initialize();
+  FormatBlock();
 }
 
 BufferManager::~BufferManager() {
@@ -21,7 +21,7 @@ void BufferManager::Initialize() {
     // 将每个缓存块的forward连起来
     if (i == 0) {
       bm_buffers_[i].b_forw_ = bm_free_list_;
-      bm_free_list_->b_back_ = bm_buffers_;
+      bm_free_list_->b_back_ = bm_buffers_ + i;
     } else {
       bm_buffers_[i].b_forw_ = bm_buffers_ + i - 1;
     }
@@ -130,6 +130,7 @@ void BufferManager::FlushBlock() {
       p_tmp->b_flags_ &= ~(Buffer::B_DELWRT);
       p_device_manager->WriteImage(p_tmp->b_addr_, BUFFER_SIZE,
                                    p_tmp->b_blkno_ * BUFFER_SIZE);
+      // cout << "FlushBlock() " << p_tmp->b_blkno_ << endl;
       p_tmp->b_flags_ |= Buffer::B_DONE;
     }
   }
@@ -147,7 +148,7 @@ void BufferManager::FormatBlock() {
 }
 
 void BufferManager::PushBuffer(Buffer *p_buffer) {
-  if (p_buffer->b_back_ == NULL) {
+  if (p_buffer->b_back_ != NULL) {
     return;
   }
   p_buffer->b_forw_ = bm_free_list_->b_forw_;

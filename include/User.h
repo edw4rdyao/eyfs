@@ -51,7 +51,7 @@ public:
   User();
   ~User();
   void Cd(string dir_name);
-  void Mkdir(string dir_name);
+  void Mkdir(string dir_name, string mode);
   void Create(string file_name, string mode);
   void Delete(string file_name);
   void Open(string file_name, string mode);
@@ -60,13 +60,15 @@ public:
   void Write(string fd, string input_file, string size);
   void Read(string fd, string output_file, string size);
   void Ls();
+  void UserList();
   bool CheckDirectoryParam(string dir_name);
   void HandleError(enum ErrorCode err_code);
   int GetInodeMode(string mode);
   int GetFileMode(string mode);
+  string GetPermission(unsigned int mode);
   unsigned int u_ar0[1024];
-  int u_uid_;                   // 用户id
-  int u_gid_;                   // 用户组id
+  int u_uid_;                  // 用户id
+  int u_gid_;                  // 用户组id
   int u_args_[5];              // 系统调用参数
   string u_dir_param_;         // 系统调用参数
   Inode *u_pdir_current_;      // 当前目录的Inode指针
@@ -77,7 +79,7 @@ public:
   ErrorCode u_error_code_;                     // 错误码
   OpenFiles u_openfiles_;                      // 当前打开文件对象
   IOParameter u_ioparam;                       // 当前读写描述符
-  string u_list_;
+  vector<Inode*> u_list_;
 };
 
 #endif

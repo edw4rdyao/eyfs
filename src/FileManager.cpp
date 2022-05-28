@@ -34,7 +34,8 @@ void FileManager::Create() {
   if (DEBUG)
     Print("FileManager Info", "execute fuction Create()");
   Inode *p_inode = NULL;
-  unsigned int mode = p_user->u_args_[1];
+  unsigned int mode =
+      p_user->u_args_[1] & (Inode::IRWXU | Inode::IRWXG | Inode::IRWXO);
   // 搜索目录的模式为1，表示创建；若父目录不可写，出错返回
   p_inode = SearchDirectory(FileManager::CREATE);
   // 没有找到相应的Inode
@@ -44,9 +45,7 @@ void FileManager::Create() {
     p_inode = this->MakeInode(mode);
     if (p_inode == NULL)
       return;
-    // ?如果所希望的名字不存在，使用参数trf = 2来调用open
-    // ?不需要进行权限检查，因为刚刚建立的文件的权限和传入参数mode
-    // ?所表示的权限内容是一样的
+    // 如果所希望的名字不存在，使用参数trans = 2来调用open
     OpenCommon(p_inode, File::F_WRITE, 2);
     return;
   }
@@ -56,9 +55,43 @@ void FileManager::Create() {
   return;
 }
 
+void FileManager::MakeDirectory() {
+  if (DEBUG)
+    Print("FileManager Info", "execute fuction MakeDirectory()");
+  Inode *p_inode = NULL;
+  p_inode = SearchDirectory(FileManager::CREATE);
+  // 要创建的文件已经存在,这里并不能去覆盖此文件
+  if (p_inode != NULL) {
+    p_user->u_error_code_ = User::U_EEXIST;
+    p_inode_table->PutInode(p_inode);
+    return;
+  }
+  p_inode = MakeInode(p_user->u_args_[1]);
+  if (p_inode == NULL) {
+    return;
+  }
+  p_inode_table->PutInode(p_inode);
+  return;
+}
+
 void FileManager::OpenCommon(Inode *p_inode, int mode, int trans) {
   if (DEBUG)
     Print("FileManager Info", "execute fuction OpenCommon(...)");
+  // 对所希望的文件已存在的情况下，即trans == 0或trans == 1进行权限检查
+  if (trans != 2) {
+    if (mode & File::F_READ) {
+      CheckAccess(p_inode, Inode::IREAD);
+    }
+    if (mode & File::F_WRITE) {
+      CheckAccess(p_inode, Inode::IWRITE);
+    }
+  }
+  // 权限错误，释放Inode
+  if (p_user->u_error_code_) {
+    p_inode_table->PutInode(p_inode);
+    return;
+  }
+  // 在creat文件的时候搜索到同文件名的文件，释放该文件所占据的所有盘块
   if (trans == 1) {
     p_inode->TruncateInode();
   }
@@ -136,12 +169,14 @@ void FileManager::Write() { ReadWriteCommon(File::F_WRITE); }
 void FileManager::ReadWriteCommon(enum File::FileFlags mode) {
   if (DEBUG)
     Print("FileManager Info", "execute fuction ReadWriteCommon(...)");
+  // 根据Read()/Write()的系统调用参数fd获取打开文件控制块结构
   File *p_file;
   p_file = p_user->u_openfiles_.GetFile(p_user->u_args_[0]);
   if (p_file == NULL) {
     Print("FileManager Info", "get file failed");
     return;
   }
+  // 读写的模式不正确
   if ((p_file->f_flag_ & mode) == 0) {
     p_user->u_error_code_ = User::U_EACCES;
     return;
@@ -187,8 +222,13 @@ Inode *FileManager::SearchDirectory(enum DirectorySearchMode mode) {
     if ((p_inode->i_mode_ & Inode::IFMT) != Inode::IFDIR) {
       p_user->u_error_code_ = User::U_ENOTDIR;
     }
-    // 将pathname中当前准备进行匹配的路径分量拷贝
-    // 便于和目录项进行比较
+    // 进行目录搜索权限检查,IEXEC在目录文件中表示搜索权限
+    if (CheckAccess(p_inode, Inode::IEXEC)) {
+      p_user->u_error_code_ = User::U_EACCES;
+      break;
+    }
+
+    // 将pathname中当前准备进行匹配的路径分量拷贝便于和目录项进行比较
     nindex = p_user->u_dir_param_.find_first_of('/', index);
     memset(p_user->u_dir_buffer_, 0, sizeof(p_user->u_dir_buffer_));
     memcpy(p_user->u_dir_buffer_, p_user->u_dir_param_.data() + index,
@@ -205,8 +245,15 @@ Inode *FileManager::SearchDirectory(enum DirectorySearchMode mode) {
         if (p_buffer != NULL) {
           p_buffer_manager->ReleaseBuffer(p_buffer);
         }
+        // 如果是创建新文件
         if (mode == FileManager::CREATE &&
             nindex >= p_user->u_dir_param_.length()) {
+          // 判断该目录是否可写
+          if (CheckAccess(p_inode, Inode::IWRITE)) {
+            p_user->u_error_code_ = User::U_EACCES;
+            p_inode_table->PutInode(p_inode);
+            return NULL;
+          }
           // 将父目录Inode指针保存起来，以后写目录项会用到
           p_user->u_pdir_parent_ = p_inode;
           if (entry_offset) {
@@ -259,6 +306,10 @@ Inode *FileManager::SearchDirectory(enum DirectorySearchMode mode) {
     // 如果是删除操作，则返回父目录Inode
     if (mode == FileManager::DELETE &&
         nindex >= p_user->u_dir_param_.length()) {
+      if (CheckAccess(p_inode, Inode::IWRITE)) {
+        p_user->u_error_code_ = User::U_EACCES;
+        break;
+      }
       return p_inode;
     }
     // 匹配目录项成功，则释放当前目录Inode，根据匹配成功的目录项inode_id_
@@ -270,6 +321,7 @@ Inode *FileManager::SearchDirectory(enum DirectorySearchMode mode) {
       return NULL;
     }
   }
+  p_inode_table->PutInode(p_inode);
   return NULL;
 }
 
@@ -365,14 +417,14 @@ void FileManager::Unlink() {
   return;
 }
 
-void FileManager::List() {
+vector<string> FileManager::List() {
   if (DEBUG)
     Print("FileManager Info", "execute fuction List()");
+  vector<string> name_list;
   Inode *p_inode = p_user->u_pdir_current_;
   Buffer *p_buffer = NULL;
   p_user->u_ioparam.io_offset_ = 0;
   p_user->u_ioparam.io_count_ = p_inode->i_size_ / sizeof(DirectoryEntry);
-  int count = 0;
   while (p_user->u_ioparam.io_count_) {
     // 正好读完一个缓存块
     if ((p_user->u_ioparam.io_offset_ % Inode::BLOCK_SIZE) == 0) {
@@ -396,27 +448,48 @@ void FileManager::List() {
     if (DEBUG) {
       cout << "[FileManager Info] "
            << "search inode id:" << p_user->u_dir_entry_.inode_id_ << endl;
-      Inode *p_tmp_inode =
-          p_inode_table->GetInode(p_user->u_dir_entry_.inode_id_);
-      if (p_tmp_inode) {
-        cout << "[FileManager Info] "
-             << "inode uid:" << p_tmp_inode->i_uid_
-             << "  inode gid:" << p_tmp_inode->i_gid_
-             << "  inode mode:" << p_tmp_inode->i_mode_
-             << "  inode nlink:" << p_tmp_inode->i_nlink_
-             << "  inode acess time:" << p_tmp_inode->i_last_read_ << endl;
-      }
+    }
+    // 获取目录文件中文件对应的Inode
+    Inode *p_tmp_inode =
+        p_inode_table->GetInode(p_user->u_dir_entry_.inode_id_);
+    if (DEBUG) {
+      cout << "[FileManager Info] "
+           << "inode uid:" << p_tmp_inode->i_uid_
+           << "  inode gid:" << p_tmp_inode->i_gid_
+           << "  inode mode:" << p_tmp_inode->i_mode_
+           << "  inode nlink:" << p_tmp_inode->i_nlink_ << endl;
     }
     // 处理输出
-    p_user->u_list_ += p_user->u_dir_entry_.name_;
-    p_user->u_list_ += " ";
-    count++;
-    if (count % 7 == 0) {
-      p_user->u_list_ += "\n";
-    }
+    name_list.push_back(string(p_user->u_dir_entry_.name_));
+    p_user->u_list_.push_back(p_tmp_inode);
   }
   if (p_buffer) {
     p_buffer_manager->ReleaseBuffer(p_buffer);
   }
-  return;
+  return name_list;
+}
+
+int FileManager::CheckAccess(Inode *p_inode, unsigned int mode) {
+  // 对于超级用户，读写任何文件都是允许的
+  // 而要执行某文件时，必须在i_mode有可执行标志
+  if (p_user->u_uid_ == 0) {
+    if (mode == Inode::IEXEC &&
+        (p_inode->i_mode_ &
+         (Inode::IEXEC | (Inode::IEXEC >> 3) | (Inode::IEXEC >> 6))) == 0) {
+      p_user->u_error_code_ = User::U_EACCES;
+      return 1;
+    }
+    return 0;
+  }
+  if (p_user->u_uid_ != p_inode->i_uid_) {
+    mode = mode >> 3;
+    if (p_user->u_gid_ != p_inode->i_gid_) {
+      mode = mode >> 3;
+    }
+  }
+  if ((p_inode->i_mode_ & mode) != 0) {
+    return 0;
+  }
+  p_user->u_error_code_ = User::U_EACCES;
+  return 1;
 }

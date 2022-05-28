@@ -5,6 +5,7 @@
 #include "User.h"
 #include "Utils.h"
 #include <cstring>
+#include <fstream>
 
 extern BufferManager *p_buffer_manager;
 extern User *p_user;
@@ -87,6 +88,9 @@ void Inode::ReadInode() {
 }
 
 void Inode::WriteInode() {
+  // test
+  fstream fout("debug_write.txt", ios::out);
+
   if (DEBUG)
     Print("Inode Info", "execute fuction WriteInode()");
   int logic_block_id = 0; // 文件的逻辑块号
@@ -130,12 +134,16 @@ void Inode::WriteInode() {
     p_user->u_ioparam.io_start_addr_ += bytes_num;
     p_user->u_ioparam.io_offset_ += bytes_num;
     p_user->u_ioparam.io_count_ -= bytes_num;
-    // TODO: 写过程出错
+    // 写过程出错
+    if (p_user->u_error_code_) {
+      p_buffer_manager->ReleaseBuffer(p_buffer);
+    }
     p_buffer_manager->WriteBlockDelay(p_buffer);
     // 更新文件长度
     if (i_size_ < p_user->u_ioparam.io_offset_) {
       i_size_ = p_user->u_ioparam.io_offset_;
     }
+    i_flag_ |= Inode::I_UPD;
   }
   return;
 }
@@ -173,7 +181,7 @@ int Inode::MapBlock(int logic_block_id) {
               6;
     } else {
       index = (logic_block_id - Inode::LARGE_FILE_BLOCK) /
-                  (Inode::ADDRESS_PER_INDEX_BLOCK +
+                  (Inode::ADDRESS_PER_INDEX_BLOCK *
                    Inode::ADDRESS_PER_INDEX_BLOCK) +
               8;
     }
@@ -231,7 +239,6 @@ int Inode::MapBlock(int logic_block_id) {
       index = (logic_block_id - Inode::LARGE_FILE_BLOCK) %
               Inode::ADDRESS_PER_INDEX_BLOCK;
     }
-    // ?为什么还要分配呢
     block_id = index_table[index];
     if (block_id == 0 &&
         (p_buffer_second = p_file_system->AllocBlock()) != NULL) {

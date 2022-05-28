@@ -5,7 +5,7 @@
 #include "Inode.h"
 #include "InodeTable.h"
 #include "OpenfileTable.h"
-
+#include <vector>
 class FileManager {
 public:
   enum DirectorySearchMode {
@@ -23,6 +23,7 @@ public:
   // @brief:
   // @return:
   void Create();
+  void MakeDirectory();
   // @param:
   // @brief:
   // @return:
@@ -50,12 +51,13 @@ public:
   // @param:
   // @brief:
   // @return:
+  int CheckAccess(Inode *p_inode, unsigned int mode);
   Inode *SearchDirectory(enum FileManager::DirectorySearchMode mode);
   Inode *MakeInode(unsigned int mode);
-  void WriteDirectory(Inode* p_inode);
+  void WriteDirectory(Inode *p_inode);
   void ChangeDirectory();
   void Unlink();
-  void List();
+  vector<string> List();
   Inode *root_inode_; // 根目录对应的Inode
 };
 

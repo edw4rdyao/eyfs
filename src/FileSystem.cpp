@@ -40,6 +40,7 @@ void FileSystem::FormatFileSystem() {
   // 初始化DiskInode区，root Inode+空闲Inode
   // 新建root根目录
   DiskInode root;
+  root.d_mode_ = 0755;
   root.d_mode_ |= (Inode::IALLOC | Inode::IFDIR);
   root.d_nlink_ = 1;
   p_device_manager->WriteImage(&root, sizeof(root));

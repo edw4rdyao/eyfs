@@ -1,11 +1,13 @@
 #include "User.h"
 #include "FileManager.h"
+#include "UserManager.h"
 #include "Utils.h"
 #include <cstring>
 #include <fstream>
+#include <iomanip>
 
 extern FileManager *p_file_manager;
-
+extern UserManager *p_user_manager;
 User::User() {
   u_error_code_ = User::U_NOERROR;
   u_dir_param_ = "/";
@@ -17,9 +19,31 @@ User::User() {
 
 User::~User() {}
 
-int User::GetFileMode(string mode) {}
+int User::GetFileMode(string mode) {
+  int file_mode = 0;
+  if (mode == "-r") {
+    file_mode |= File::F_READ;
+  } else if (mode == "-w") {
+    file_mode |= File::F_WRITE;
+  } else if (mode == "-rw" || mode == "-wr") {
+    file_mode |= (File::F_READ | File::F_WRITE);
+  } else {
+    return -1;
+  }
+  return file_mode;
+}
 
-int User::GetInodeMode(string mode) {}
+int User::GetInodeMode(string mode) {
+  int inode_mode = 0;
+  if (mode.length() != 3 || mode[0] < '0' || mode[0] > '7' || mode[1] < '0' ||
+      mode[1] > '7' || mode[2] < '0' || mode[2] > '7') {
+    return -1;
+  } else {
+    // mode:0000 000x xxxx xxxx,last 9 bits indicates the permissions.
+    inode_mode = (mode[0] - 48) * 64 + (mode[1] - 48) * 8 + (mode[2] - 48) * 1;
+  }
+  return inode_mode;
+}
 
 bool User::CheckDirectoryParam(string dir_name) {
   if (dir_name.empty()) {
@@ -66,12 +90,14 @@ void User::Cd(string dir_name) {
   return;
 }
 
-void User::Mkdir(string dir_name) {
+void User::Mkdir(string dir_name, string mode) {
   if (!CheckDirectoryParam(dir_name)) {
     return;
   }
-  u_args_[1] = Inode::IFDIR;
-  p_file_manager->Create();
+  int new_mode = GetInodeMode(mode);
+  new_mode |= Inode::IFDIR;
+  u_args_[1] = new_mode;
+  p_file_manager->MakeDirectory();
   if (u_error_code_)
     HandleError(u_error_code_);
   return;
@@ -81,14 +107,12 @@ void User::Create(string file_name, string mode) {
   if (!CheckDirectoryParam(file_name)) {
     return;
   }
-  // int mode_mask = GetInodeMode(mode);
-  int mode_mask = 0;
-  mode_mask |= (Inode::IREAD | Inode::IWRITE);
-  if (mode_mask == 0) {
+  int new_mode = GetInodeMode(mode);
+  if (new_mode == -1) {
     Print("Error", "mode not support");
     return;
   }
-  u_args_[1] = mode_mask;
+  u_args_[1] = new_mode;
   p_file_manager->Create();
   if (u_error_code_) {
     HandleError(u_error_code_);
@@ -110,13 +134,12 @@ void User::Open(string file_name, string mode) {
   if (!CheckDirectoryParam(file_name)) {
     return;
   }
-  int mode_mask = 0;
-  mode_mask |= (File::F_WRITE | File::F_READ);
-  if (mode_mask == 0) {
+  int new_mode = GetFileMode(mode);
+  if (new_mode == 0) {
     Print("Error", "mode not support");
     return;
   }
-  u_args_[1] = mode_mask;
+  u_args_[1] = new_mode;
   p_file_manager->Open();
   if (u_error_code_)
     HandleError(u_error_code_);
@@ -216,13 +239,80 @@ void User::Read(string fd, string output_file, string size) {
 
 void User::Ls() {
   u_list_.clear();
-  p_file_manager->List();
+  vector<string> name_list = p_file_manager->List();
   if (u_error_code_) {
     HandleError(u_error_code_);
     return;
   }
-  cout << u_list_ << endl;
+  // 输出文件信息
+  if (name_list.size()) {
+    cout << std::left << setw(12) << "permission" << setw(8) << "nlink"
+         << setw(8) << "owner" << setw(8) << "group" << setw(12) << "size"
+         << setw(20) << "name" << endl;
+    for (size_t i = 0; i < name_list.size(); i++) {
+      cout << std::left << setw(12) << GetPermission(u_list_[i]->i_mode_)
+           << setw(8) << u_list_[i]->i_nlink_ << setw(8) << u_list_[i]->i_uid_
+           << setw(8) << u_list_[i]->i_gid_ << setw(12) << u_list_[i]->i_size_
+           << setw(20) << name_list[i] << endl;
+    }
+  }
   return;
+}
+
+void User::UserList() {
+  cout << std::left << setw(12) << "username" << setw(8) << "uid" << endl;
+  for (int i = 0; i < p_user_manager->user_num_; i++) {
+    cout << std::left << setw(12) << p_user_manager->users_info_[i].username
+         << setw(8) << p_user_manager->users_info_[i].uid << endl;
+  }
+}
+
+string User::GetPermission(unsigned int mode) {
+  string permission;
+  if ((mode & 0x4000) == 0)
+    permission += "-";
+  else
+    permission += "d";
+  // permissions of file owner
+  if ((mode & 0x0100) == 0)
+    permission += "-";
+  else
+    permission += "r";
+  if ((mode & 0x0080) == 0)
+    permission += "-";
+  else
+    permission += "w";
+  if ((mode & 0x0040) == 0)
+    permission += "-";
+  else
+    permission += "x";
+  // permissions of users in the same group
+  if ((mode & 0x0020) == 0)
+    permission += "-";
+  else
+    permission += "r";
+  if ((mode & 0x0010) == 0)
+    permission += "-";
+  else
+    permission += "w";
+  if ((mode & 0x0008) == 0)
+    permission += "-";
+  else
+    permission += "x";
+  // permissions of other users
+  if ((mode & 0x0004) == 0)
+    permission += "-";
+  else
+    permission += "r";
+  if ((mode & 0x0002) == 0)
+    permission += "-";
+  else
+    permission += "w";
+  if ((mode & 0x0001) == 0)
+    permission += "-";
+  else
+    permission += "x";
+  return permission;
 }
 
 void User::HandleError(enum ErrorCode err_code) {
