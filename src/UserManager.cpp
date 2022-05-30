@@ -21,9 +21,78 @@ UserManager::~UserManager() { UpdateUser(); }
 
 void UserManager::AddUser(string username, string passward, string uid) {
   if (p_user->u_uid_ != 0) {
-    // not root
+    Print("Error", "only root can add user");
+    return;
   }
-  // check
+  // 检查用户个数是否已满
+  if (user_num_ == UserManager::USER_NUM) {
+    Print("Error", "user num has reached the maximum");
+    return;
+  }
+  // 检查格式
+  if (username.size() > 8) {
+    Print("Error", "username maximum length 6");
+    return;
+  } else if (passward.size() > 8 || passward.size() < 4) {
+    Print("Error", "password length between 4-8");
+    return;
+  } else if (uid.size() > 4 || !IsDigit(uid)) {
+    Print("Error", "uid is s number between 0 and 9999");
+    return;
+  }
+  if (!Check(username) || !Check(passward)) {
+    Print("Error", "username or password consists of numbers or letters");
+    return;
+  }
+  // 检查是否存在该用户
+  uid = to_string(stoi(uid));
+  if (IsExistByUsername(username)) {
+    Print("Error", "username exists");
+    return;
+  } else if (IsExistByUid(uid)) {
+    Print("Error", "uid exists");
+    return;
+  }
+  // 添加用户
+  users_info_[user_num_].username = username;
+  users_info_[user_num_].password = passward;
+  users_info_[user_num_].uid = uid;
+  user_num_++;
+  cout << "add user " << username << " successfully" << endl;
+  return;
+}
+
+void UserManager::DeleteUser(string username) {
+  // 权限及合法性检查
+  if (p_user->u_uid_ != 0) {
+    Print("Error", "only root can add user");
+    return;
+  }
+  if (username == "root") {
+    Print("Error", "can not delete root");
+    return;
+  }
+  // 删除用户
+  for (size_t i = 0; i < user_num_; i++) {
+    if (users_info_[i].username == username) {
+      for (size_t j = i; j < user_num_; j++) {
+        if (j == user_num_ - 1) {
+          users_info_[j].username = "";
+          users_info_[j].password = "";
+          users_info_[j].uid = "";
+        } else {
+          users_info_[j].username = users_info_[j + 1].username;
+          users_info_[j].password = users_info_[j + 1].password;
+          users_info_[j].uid = users_info_[j + 1].uid;
+        }
+      }
+      user_num_--;
+      cout << "delete user " << username << " successfully" << endl;
+      return;
+    }
+  }
+  Print("Error", "user not exists");
+  return;
 }
 
 void UserManager::LoadUser(const char *user_list) {
@@ -111,4 +180,31 @@ void UserManager::UpdateUser() {
   p_user->u_args_[0] = fd;
   p_file_manager->Close();
   return;
+}
+
+bool UserManager::IsExistByUsername(string username) {
+  for (size_t i = 0; i < user_num_; i++) {
+    if (users_info_[i].username == username) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool UserManager::IsExistByUid(string uid) {
+  for (size_t i = 0; i < user_num_; i++) {
+    if (users_info_[i].uid == uid) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool UserManager::Check(string username) {
+  for (size_t i = 0; i < username.size(); i++) {
+    if (!isdigit(username[i]) && !isalpha(username[i])) {
+      return false;
+    }
+  }
+  return true;
 }

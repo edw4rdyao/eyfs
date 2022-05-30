@@ -29,3 +29,12 @@ void PrintLog() {
   cout << ctime(&now);
   return;
 }
+
+bool IsDigit(string s) {
+  for (size_t i = 0; i < s.size(); i++) {
+    if (s[i] < '0' || s[i] > '9') {
+      return false;
+    }
+  }
+  return true;
+}

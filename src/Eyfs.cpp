@@ -85,7 +85,8 @@ Eyfs::Eyfs() {
     p_user->u_args_[1] = p_user->GetInodeMode("644");
     p_file_manager->Create();
     int fd = p_user->u_ar0[User::EAX];
-    if(DEBUG) cout << "oprnfile fd: " << fd << endl;
+    if (DEBUG)
+      cout << "oprnfile fd: " << fd << endl;
     // 写入用户信息
     const char *init_users = "root:root:0\nyzh:011988:1000\n";
     p_user->u_args_[0] = fd;
@@ -199,6 +200,18 @@ void Eyfs::ExecuteCmd(vector<string> cmd_args) {
       return;
     }
     p_user_manager->Logout();
+  } else if (cmd_args[0] == "adduser") {
+    if (cmd_args.size() != 4) {
+      Print("Error", "command param is error using 'help' to check");
+      return;
+    }
+    p_user_manager->AddUser(cmd_args[1], cmd_args[2], cmd_args[3]);
+  } else if (cmd_args[0] == "rmuser") {
+    if (cmd_args.size() != 2) {
+      Print("Error", "command param is error using 'help' to check");
+      return;
+    }
+    p_user_manager->DeleteUser(cmd_args[1]);
   } else {
     Print("Error", "command not found");
   }

@@ -30,4 +30,6 @@ void PrintLog();
 // @return
 void Print(const char* title, const char* message);
 
+bool IsDigit(string s);
+
 #endif

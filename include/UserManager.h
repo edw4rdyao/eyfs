@@ -24,6 +24,9 @@ public:
   void Logout();
   void AddUser(string username, string passward, string uid);
   void DeleteUser(string username);
+  bool Check(string username);
+  bool IsExistByUsername(string username);
+  bool IsExistByUid(string uid);
   void UpdateUser();
 };
 
