@@ -117,6 +117,8 @@ void User::Create(string file_name, string mode) {
   if (u_error_code_) {
     HandleError(u_error_code_);
   }
+  cout << "create file successfully, file descriptor is " << u_ar0[User::EAX]
+       << endl;
   return;
 }
 
@@ -143,6 +145,8 @@ void User::Open(string file_name, string mode) {
   p_file_manager->Open();
   if (u_error_code_)
     HandleError(u_error_code_);
+  cout << "open file successfully, file descriptor is" << u_ar0[User::EAX]
+       << endl;
   return;
 }
 
@@ -154,6 +158,8 @@ void User::Close(string fd) {
   p_file_manager->Close();
   if (u_error_code_)
     HandleError(u_error_code_);
+  cout << "close file successfully, which file descriptor is"
+       << u_ar0[User::EAX] << endl;
   return;
 }
 
@@ -345,6 +351,8 @@ void User::HandleError(enum ErrorCode err_code) {
   case U_ENOSPC:
     err_message = "no space left on device";
     break;
+  case U_EEXIST:
+    err_message = "file or directory exists";
   default:
     break;
   }

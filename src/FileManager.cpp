@@ -66,6 +66,9 @@ void FileManager::MakeDirectory() {
     p_inode_table->PutInode(p_inode);
     return;
   }
+  if (p_user->u_error_code_) {
+    return;
+  }
   p_inode = MakeInode(p_user->u_args_[1]);
   if (p_inode == NULL) {
     return;
@@ -209,6 +212,7 @@ Inode *FileManager::SearchDirectory(enum DirectorySearchMode mode) {
     nindex = ++index + 1;
     p_inode = root_inode_;
   }
+  // TODO 如果试图更改和删除当前目录文件则出错
   // 外层循环每次处理pathname中一段路径分量
   while (true) {
     if (p_user->u_error_code_) {
@@ -395,7 +399,6 @@ void FileManager::Unlink() {
   Inode *p_inode_delete = NULL;
   p_inode_delete = SearchDirectory(FileManager::DELETE);
   if (p_inode_delete == NULL) {
-    Print("FileManager Info", "search directory to be deleted failed");
     return;
   }
   p_inode = p_inode_table->GetInode(p_user->u_dir_entry_.inode_id_);

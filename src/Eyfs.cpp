@@ -38,13 +38,15 @@ Eyfs::Eyfs() {
     p_file_manager->root_inode_ = p_inode_table->GetInode(0);
     p_file_manager->root_inode_->i_count_ = 0xff;
     // 打开根目录
-    p_file_manager->Open();
+    // p_file_manager->Open();
     p_user->u_pdir_current_ = p_file_manager->root_inode_;
     p_user->u_pdir_parent_ = NULL;
     // 获取当前用户列表文件
-    p_user->Open("etc/user", "-r");
+    // p_user->Open("etc/user", "-r");
+    p_user->CheckDirectoryParam("etc/user");
+    p_user->u_args_[1] = p_user->GetFileMode("-r");
+    p_file_manager->Open();
     int fd = p_user->u_ar0[User::EAX];
-    cout << "fd: " << fd << endl;
     int size = p_user->u_openfiles_.GetFile(fd)->f_inode_->i_size_;
     // 读取文件
     char *user_list = new char[size];
@@ -69,21 +71,23 @@ Eyfs::Eyfs() {
     p_file_manager->root_inode_ = p_inode_table->GetInode(0);
     p_file_manager->root_inode_->i_count_ = 0xff;
     // 打开根目录
-    p_file_manager->Open();
+    // p_file_manager->Open();
     p_user->u_pdir_current_ = p_file_manager->root_inode_;
     p_user->u_pdir_parent_ = NULL;
     // root用户创建基础文件夹
-    p_user->Mkdir("bin", "755");
+    p_user->Mkdir("bin", "777");
     p_user->Mkdir("etc", "755");
-    p_user->Mkdir("home", "755");
-    p_user->Mkdir("dev", "755");
+    p_user->Mkdir("home", "777");
+    p_user->Mkdir("dev", "777");
     // 创建用户信息文件
-    p_user->Cd("etc");
-    p_user->Create("user", "644");
+    // p_user->Create("/etc/user", "644");
+    p_user->CheckDirectoryParam("/etc/user");
+    p_user->u_args_[1] = p_user->GetInodeMode("644");
+    p_file_manager->Create();
     int fd = p_user->u_ar0[User::EAX];
-    cout << "fd: " << fd << endl;
+    if(DEBUG) cout << "oprnfile fd: " << fd << endl;
     // 写入用户信息
-    const char *init_users = "root:root:0\nyzh:011988:1\n";
+    const char *init_users = "root:root:0\nyzh:011988:1000\n";
     p_user->u_args_[0] = fd;
     p_user->u_args_[1] = (long)init_users;
     p_user->u_args_[2] = strlen(init_users);
@@ -105,6 +109,7 @@ Eyfs::Eyfs() {
 Eyfs::~Eyfs() {
   if (DEBUG)
     Print("Info", "delete object");
+  delete p_user_manager;
   delete p_file_system;
   delete p_inode_table;
   delete p_file_manager;
@@ -175,6 +180,7 @@ void Eyfs::ExecuteCmd(vector<string> cmd_args) {
       return;
     }
     p_user->Read(cmd_args[1], cmd_args[2], cmd_args[3]);
+
   } else if (cmd_args[0] == "write") {
     if (cmd_args.size() != 4) {
       Print("Error", "command param is error using 'help' to check");
@@ -202,7 +208,7 @@ void Eyfs::ExecuteCmd(vector<string> cmd_args) {
 void Eyfs::Run() {
   while (running_) {
     if (p_user->u_uid_ == -1) {
-      Print("Info", "please use 'login' to login a user");
+      Print("Info", "please use 'login [username] [password]' to login a user");
       string cmd;
       getline(cin, cmd);
       vector<string> cmd_args = ParseCmd(cmd);

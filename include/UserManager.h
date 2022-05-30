@@ -19,11 +19,12 @@ public:
   UserItem users_info_[USER_NUM];
   int user_num_;
   int current_user_;
-  void LoadUser(const char* user_list);
+  void LoadUser(const char *user_list);
   void Login(string username, string password);
   void Logout();
-  void AddUser();
-  void DeleteUser();
+  void AddUser(string username, string passward, string uid);
+  void DeleteUser(string username);
+  void UpdateUser();
 };
 
 #endif

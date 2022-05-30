@@ -88,9 +88,6 @@ void Inode::ReadInode() {
 }
 
 void Inode::WriteInode() {
-  // test
-  fstream fout("debug_write.txt", ios::out);
-
   if (DEBUG)
     Print("Inode Info", "execute fuction WriteInode()");
   int logic_block_id = 0; // 文件的逻辑块号

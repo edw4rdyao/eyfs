@@ -15,7 +15,9 @@ File *OpenfileTable::AllocFile() {
     Print("OpenfileTable Info", "alloc failed");
     return NULL;
   }
-  cout << "[OpenfileTable Info]" << "open file: " << fd << endl; 
+  if (DEBUG)
+    cout << "[OpenfileTable Info]"
+         << "open file descriptor: " << fd << endl;
   // 寻找空闲项
   for (size_t i = 0; i < OpenfileTable::FILENUM; i++) {
     if (file_table_[i].f_count_ == 0) {
