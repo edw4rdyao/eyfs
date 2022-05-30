@@ -1,12 +1,12 @@
 #include "Utils.h"
 
 void DisplayInfomation() {
-  cout << "              ____    \n";
-  cout << "  ___  __  __/ __/____\n";
-  cout << " / _ \\/ / / / /_/ ___/\n";
-  cout << "/  __/ /_/ / __(__  ) \n";
-  cout << "\\___/\\__, /_/ /____/  \n";
-  cout << "    /____/            \n";
+  cout << "              ____       \n";
+  cout << "  ___  __  __/ __/____   The filesystem like Unix.\n";
+  cout << " / _ \\/ / / / /_/ ___/   \n";
+  cout << "/  __/ /_/ / __(__  )    Auth: Edward Yao\n";
+  cout << "\\___/\\__, /_/ /____/     Github: https://github.com/Yaozhtj/eyfs\n";
+  cout << "    /____/               \n";
 }
 
 vector<string> ParseCmd(string cmd) {

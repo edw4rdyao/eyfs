@@ -1,4 +1,5 @@
 #include "Eyfs.h"
+#include <iomanip>
 #include <string.h>
 DeviceManager *p_device_manager;
 BufferManager *p_buffer_manager;
@@ -212,16 +213,57 @@ void Eyfs::ExecuteCmd(vector<string> cmd_args) {
       return;
     }
     p_user_manager->DeleteUser(cmd_args[1]);
+  } else if (cmd_args[0] == "help") {
+    PrintHelp();
   } else {
     Print("Error", "command not found");
   }
   return;
 }
 
+void Eyfs::PrintHelp() {
+  cout << std::left << setw(50) << "commond"
+       << "description" << endl;
+  cout << std::left << setw(50) << "exit"
+       << "exit file system and update disk image." << endl;
+  cout << std::left << setw(50) << "clear"
+       << "clear the output before." << endl;
+  cout << std::left << setw(50) << "ls"
+       << "list the files and directories on current directory." << endl;
+  cout << std::left << setw(50) << "cd [directory path]"
+       << "change current directory to [directory path]." << endl;
+  cout << std::left << setw(50) << "mkdir [directory path] [mode]"
+       << "create a new directory with [mode] such as 755." << endl;
+  cout << std::left << setw(50) << "rm [directory path | file path]"
+       << "delete file or directory." << endl;
+  cout << std::left << setw(50) << "create [file path]"
+       << "create a new file, and open it with write-only mode." << endl;
+  cout << std::left << setw(50) << "open [file path] [mode]"
+       << "open a file with [mode] such as '-r', '-w' or '-rw'" << endl;
+  cout << std::left << setw(50) << "seek [file descriptor] [offset] [origin]"
+       << "move file pointer to position [origin] + [offset]." << endl;
+  cout << std::left << setw(50) << "close [file descriptor]"
+       << "close file of [file descriptor] in openfile tables." << endl;
+  cout << std::left << setw(50) << "ul"
+       << "list the current user of file system." << endl;
+  cout << std::left << setw(50) << "login [username] [password]"
+       << "login user [username] with [password]." << endl;
+  cout << std::left << setw(50) << "logout"
+       << "logout the current user." << endl;
+  cout << std::left << setw(50) << "adduser [username] [password] [user id]"
+       << "[*root only] add a user with [username] [password] and [user id]." << endl;
+  cout << std::left << setw(50) << "rmuser [username]"
+       << "[*root only] delete a user with [username]." << endl;
+  cout << std::left << setw(50) << "help"
+       << "help information of commonds." << endl;
+  cout << endl;
+}
+
 void Eyfs::Run() {
   while (running_) {
     if (p_user->u_uid_ == -1) {
       Print("Info", "please use 'login [username] [password]' to login a user");
+      cout << "user login: ";
       string cmd;
       getline(cin, cmd);
       vector<string> cmd_args = ParseCmd(cmd);
@@ -244,6 +286,8 @@ void Eyfs::Run() {
           }
         } else if (cmd_args[0] == "exit") {
           running_ = false;
+        } else if (cmd_args[0] == "help") {
+          PrintHelp();
         }
       }
     } else {

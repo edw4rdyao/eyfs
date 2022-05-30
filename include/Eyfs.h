@@ -22,6 +22,7 @@ public:
   // @brief
   // @return
   void Run();
+  void PrintHelp();
   Eyfs();
   ~Eyfs();
 };
