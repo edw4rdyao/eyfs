@@ -148,6 +148,7 @@ void FileManager::Seek() {
     return;
   }
   int offset = p_user->u_args_[1];
+  // origin为0从文件头开始，origin为1从当前开始，origin为2从文件尾开始
   switch (p_user->u_args_[2]) {
   case 0:
     p_file->f_offset_ = offset;

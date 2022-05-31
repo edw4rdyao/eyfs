@@ -85,8 +85,10 @@ void User::Cd(string dir_name) {
     return;
   }
   p_file_manager->ChangeDirectory();
-  if (u_error_code_)
+  if (u_error_code_) {
     HandleError(u_error_code_);
+    return;
+  }
   return;
 }
 
@@ -98,8 +100,11 @@ void User::Mkdir(string dir_name, string mode) {
   new_mode |= Inode::IFDIR;
   u_args_[1] = new_mode;
   p_file_manager->MakeDirectory();
-  if (u_error_code_)
+  if (u_error_code_) {
     HandleError(u_error_code_);
+    return;
+  }
+  cout << "create new directory successfully" << endl;
   return;
 }
 
@@ -116,6 +121,7 @@ void User::Create(string file_name, string mode) {
   p_file_manager->Create();
   if (u_error_code_) {
     HandleError(u_error_code_);
+    return;
   }
   cout << "create file successfully, file descriptor is " << u_ar0[User::EAX]
        << endl;
@@ -143,35 +149,33 @@ void User::Open(string file_name, string mode) {
   }
   u_args_[1] = new_mode;
   p_file_manager->Open();
-  if (u_error_code_)
+  if (u_error_code_) {
     HandleError(u_error_code_);
-  cout << "open file successfully, file descriptor is" << u_ar0[User::EAX]
+    return;
+  }
+  cout << "open file successfully, file descriptor is " << u_ar0[User::EAX]
        << endl;
   return;
 }
 
 void User::Close(string fd) {
-  if (fd.empty() || !isdigit(fd.front())) {
+  if (!IsDigit(fd)) {
     Print("Error", "close param error");
+    return;
   }
   u_args_[0] = stoi(fd);
   p_file_manager->Close();
   if (u_error_code_)
     HandleError(u_error_code_);
-  cout << "close file successfully, which file descriptor is"
-       << u_ar0[User::EAX] << endl;
+  cout << "close file successfully, which file descriptor is " << u_args_[0]
+       << endl;
   return;
 }
 
 void User::Seek(string fd, string offset, string origin) {
-  if (fd.empty() || !isdigit(fd.front())) {
+  if (!IsDigit(fd) || !IsDigit(offset) || !IsDigit(origin)) {
     Print("Error", "seek param error");
-  }
-  if (offset.empty()) {
-    Print("Error", "seek param error");
-  }
-  if (origin.empty() || !isdigit(fd.front())) {
-    Print("Error", "seek param error");
+    return;
   }
   u_args_[0] = stoi(fd);
   u_args_[1] = stoi(offset);
@@ -183,23 +187,39 @@ void User::Seek(string fd, string offset, string origin) {
 }
 
 void User::Write(string fd, string input_file, string size) {
-  if (fd.empty() || !isdigit(fd.front())) {
+  if (!IsDigit(fd)) {
     Print("Error", "write param error");
+    return;
   }
   int fd_write = stoi(fd);
   int write_size;
-  if (size.empty() || !isdigit(size.front()) || (write_size = stoi(size)) < 0) {
-    Print("Error", "write param error");
+  char *write_buffer = NULL;
+  if (input_file == "") {
+    // 从控制台输入
+    write_size = strlen(size.c_str());
+    u_args_[1] = (long)size.c_str();
+  } else {
+    // 从文件输入，需要检查size
+    if (!IsDigit(size)) {
+      Print("Error", "write param error");
+      return;
+    }
+    write_size = stoi(size);
+    write_buffer = new char[write_size];
+    fstream file_in(input_file, ios::in | ios::binary);
+    if (!file_in) {
+      Print("Error", "write file open error");
+      return;
+    }
+    file_in.read(write_buffer, write_size);
+    file_in.close();
+    u_args_[1] = (long)write_buffer;
   }
-  char *write_buffer = new char[write_size];
-  fstream file_in(input_file, ios::in | ios::binary);
-  if (!file_in) {
-    Print("Error", "write file open error");
+  if (DEBUG) {
   }
-  file_in.read(write_buffer, write_size);
-  file_in.close();
+  cout << "[Write Info]"
+       << " fd:" << fd_write << " size:" << write_size << endl;
   u_args_[0] = fd_write;
-  u_args_[1] = (long)write_buffer;
   u_args_[2] = write_size;
   p_file_manager->Write();
   if (u_error_code_) {
@@ -214,14 +234,17 @@ void User::Write(string fd, string input_file, string size) {
 }
 
 void User::Read(string fd, string output_file, string size) {
-  if (fd.empty() || !isdigit(fd.front())) {
+  if (!IsDigit(fd)) {
     Print("Error", "read param error");
+    return;
   }
   int fd_read = stoi(fd);
-  int read_size;
-  if (size.empty() || !isdigit(size.front()) || (read_size = stoi(size)) < 0) {
+  if (!IsDigit(size)) {
     Print("Error", "read param error");
+    return;
   }
+  int read_size = stoi(size);
+
   char *read_buffer = new char[read_size];
   u_args_[0] = fd_read;
   u_args_[1] = (long)read_buffer;
@@ -231,14 +254,28 @@ void User::Read(string fd, string output_file, string size) {
     HandleError(u_error_code_);
     return;
   }
-  ofstream file_out(output_file, ios::out | ios::binary);
-  if (!file_out) {
-    Print("Error", "read file open error");
-    return;
+  cout << "[Read Info]"
+       << "fd: " << fd_read << "  size: " << read_size << endl;
+
+  if (output_file == "") {
+    // 控制台输出
+    cout << "read content: ";
+    for (size_t i = 0; i < u_ar0[User::EAX]; i++) {
+      cout << read_buffer[i];
+    }
+    cout << endl;
+  } else {
+    // 文件输出
+    ofstream file_out(output_file, ios::out | ios::binary);
+    if (!file_out) {
+      Print("Error", "read file open error");
+      return;
+    }
+    file_out.write(read_buffer, u_ar0[User::EAX]);
+    file_out.close();
   }
-  file_out.write(read_buffer, u_ar0[User::EAX]);
-  file_out.close();
-  Print("Read", "raed file successfully");
+  cout << "[Read Info]"
+       << "read successfully:" << u_ar0[User::EAX] << " bytes" << endl;
   delete[] read_buffer;
   return;
 }

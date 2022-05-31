@@ -177,18 +177,31 @@ void Eyfs::ExecuteCmd(vector<string> cmd_args) {
     }
     p_user->Close(cmd_args[1]);
   } else if (cmd_args[0] == "read") {
-    if (cmd_args.size() != 4) {
+    if ((cmd_args.size() != 4 && cmd_args.size() != 5) ||
+        (cmd_args[1] != "-f" && cmd_args[1] != "-c") ||
+        (cmd_args[1] == "-f" && cmd_args.size() != 5) ||
+        (cmd_args[1] == "-c" && cmd_args.size() != 4)) {
       Print("Error", "command param is error using 'help' to check");
       return;
     }
-    p_user->Read(cmd_args[1], cmd_args[2], cmd_args[3]);
-
+    if (cmd_args[1] == "-f") {
+      p_user->Read(cmd_args[2], cmd_args[3], cmd_args[4]);
+    } else if (cmd_args[1] == "-c") {
+      p_user->Read(cmd_args[2], "", cmd_args[3]);
+    }
   } else if (cmd_args[0] == "write") {
-    if (cmd_args.size() != 4) {
+    if ((cmd_args.size() != 4 && cmd_args.size() != 5) ||
+        (cmd_args[1] != "-f" && cmd_args[1] != "-c") ||
+        (cmd_args[1] == "-f" && cmd_args.size() != 5) ||
+        (cmd_args[1] == "-c" && cmd_args.size() != 4)) {
       Print("Error", "command param is error using 'help' to check");
       return;
     }
-    p_user->Write(cmd_args[1], cmd_args[2], cmd_args[3]);
+    if (cmd_args[1] == "-f") {
+      p_user->Write(cmd_args[2], cmd_args[3], cmd_args[4]);
+    } else if (cmd_args[1] == "-c") {
+      p_user->Write(cmd_args[2], "", cmd_args[3]);
+    }
   } else if (cmd_args[0] == "ul") {
     if (cmd_args.size() != 1) {
       Print("Error", "command param is error using 'help' to check");
@@ -244,6 +257,16 @@ void Eyfs::PrintHelp() {
        << "move file pointer to position [origin] + [offset]." << endl;
   cout << std::left << setw(50) << "close [file descriptor]"
        << "close file of [file descriptor] in openfile tables." << endl;
+  cout << std::left << setw(50) << "read -c [file descriptor] [size]"
+       << "read file of [size] and print on terminal." << endl;
+  cout << std::left << setw(50)
+       << "read -f [file descriptor] [file name] [size]"
+       << "read file of [size] and output in file [file name]." << endl;
+  cout << std::left << setw(50) << "write -c [file descriptor] [content]"
+       << "write file of [size] by input on terminal." << endl;
+  cout << std::left << setw(50)
+       << "write -f [file descriptor] [file name] [size]"
+       << "write file of [size] by input file [file name]." << endl;
   cout << std::left << setw(50) << "ul"
        << "list the current user of file system." << endl;
   cout << std::left << setw(50) << "login [username] [password]"
@@ -251,7 +274,8 @@ void Eyfs::PrintHelp() {
   cout << std::left << setw(50) << "logout"
        << "logout the current user." << endl;
   cout << std::left << setw(50) << "adduser [username] [password] [user id]"
-       << "[*root only] add a user with [username] [password] and [user id]." << endl;
+       << "[*root only] add a user with [username] [password] and [user id]."
+       << endl;
   cout << std::left << setw(50) << "rmuser [username]"
        << "[*root only] delete a user with [username]." << endl;
   cout << std::left << setw(50) << "help"
