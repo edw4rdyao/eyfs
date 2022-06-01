@@ -17,6 +17,9 @@ BufferManager::~BufferManager() {
 void BufferManager::Initialize() {
   if (DEBUG)
     Print("BufferManager Info", "execute fuction Initialize()");
+  // 初始化设备队列
+  bm_map_.clear();
+  // 初始化自由缓存队列
   for (size_t i = 0; i < BufferManager::BUFFERS_NUM; i++) {
     // 将每个缓存块的forward连起来
     if (i == 0) {
@@ -130,7 +133,6 @@ void BufferManager::FlushBlock() {
       p_tmp->b_flags_ &= ~(Buffer::B_DELWRT);
       p_device_manager->WriteImage(p_tmp->b_addr_, BUFFER_SIZE,
                                    p_tmp->b_blkno_ * BUFFER_SIZE);
-      // cout << "FlushBlock() " << p_tmp->b_blkno_ << endl;
       p_tmp->b_flags_ |= Buffer::B_DONE;
     }
   }

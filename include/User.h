@@ -52,6 +52,7 @@ public:
   ~User();
   void Cd(string dir_name);
   void Mkdir(string dir_name, string mode);
+  void Format();
   void Create(string file_name, string mode);
   void Delete(string file_name);
   void Open(string file_name, string mode);

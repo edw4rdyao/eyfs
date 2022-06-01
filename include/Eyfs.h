@@ -22,6 +22,8 @@ public:
   // @brief
   // @return
   void Run();
+  void FormatSystem();
+  void LoadSystem();
   void PrintHelp();
   Eyfs();
   ~Eyfs();

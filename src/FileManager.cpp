@@ -82,6 +82,10 @@ void FileManager::OpenCommon(Inode *p_inode, int mode, int trans) {
     Print("FileManager Info", "execute fuction OpenCommon(...)");
   // 对所希望的文件已存在的情况下，即trans == 0或trans == 1进行权限检查
   if (trans != 2) {
+    // 打开目录文件是不允许的
+    if ((p_inode->i_mode_ & Inode::IFMT) == Inode::IFDIR) {
+      p_user->u_error_code_ = User::U_EISDIR;
+    }
     if (mode & File::F_READ) {
       CheckAccess(p_inode, Inode::IREAD);
     }
@@ -213,7 +217,10 @@ Inode *FileManager::SearchDirectory(enum DirectorySearchMode mode) {
     nindex = ++index + 1;
     p_inode = root_inode_;
   }
-  // TODO 如果试图更改和删除当前目录文件则出错
+  // 如果试图更改和删除当前目录文件则出错
+  if (p_user->u_dir_param_.length() == index && mode != FileManager::OPEN) {
+    p_user->u_error_code_ = User::U_ENOENT;
+  }
   // 外层循环每次处理pathname中一段路径分量
   while (true) {
     if (p_user->u_error_code_) {

@@ -24,85 +24,13 @@ Eyfs::Eyfs() {
   p_user_manager = new UserManager();
   // 检查镜像文件是否存在，格式化文件系统或者加载文件系统
   if (p_device_manager->CheckImage()) {
+    LoadSystem();
     cout << "[Info] filesystem loading successfully" << endl;
-    // 读入SuperBlock
-    p_device_manager->ReadImage(p_superblock, sizeof(SuperBlock),
-                                FileSystem::SUPERBLOCK_START_ADDR);
-    if (DEBUG) {
-      cout << "[Superblock Info] ";
-      cout << "s_isize:" << p_superblock->s_isize_ << "  ";
-      cout << "s_fsize:" << p_superblock->s_fsize_ << "  ";
-      cout << "s_nfree:" << p_superblock->s_nfree_ << "  ";
-      cout << "s_ninode:" << p_superblock->s_ninode_ << endl;
-    }
-    // 获取root根目录
-    p_file_manager->root_inode_ = p_inode_table->GetInode(0);
-    p_file_manager->root_inode_->i_count_ = 0xff;
-    // 打开根目录
-    // p_file_manager->Open();
-    p_user->u_pdir_current_ = p_file_manager->root_inode_;
-    p_user->u_pdir_parent_ = NULL;
-    // 获取当前用户列表文件
-    // p_user->Open("etc/user", "-r");
-    p_user->CheckDirectoryParam("etc/user");
-    p_user->u_args_[1] = p_user->GetFileMode("-r");
-    p_file_manager->Open();
-    int fd = p_user->u_ar0[User::EAX];
-    int size = p_user->u_openfiles_.GetFile(fd)->f_inode_->i_size_;
-    // 读取文件
-    char *user_list = new char[size];
-    p_user->u_args_[0] = fd;
-    p_user->u_args_[1] = (long)user_list;
-    p_user->u_args_[2] = size;
-    p_file_manager->Read();
-    // 载入用户信息
-    p_user_manager->LoadUser(user_list);
-    delete[] user_list;
-    // 关闭文件
-    p_user->u_args_[0] = fd;
-    p_file_manager->Close();
-    // root登出
-    p_user_manager->Logout();
 
   } else {
     cout << "[Info] filesystem image not exist, is creating and formating file "
             "system...\n";
-    p_file_system->FormatFileSystem();
-    // 获取root根目录
-    p_file_manager->root_inode_ = p_inode_table->GetInode(0);
-    p_file_manager->root_inode_->i_count_ = 0xff;
-    // 打开根目录
-    // p_file_manager->Open();
-    p_user->u_pdir_current_ = p_file_manager->root_inode_;
-    p_user->u_pdir_parent_ = NULL;
-    // root用户创建基础文件夹
-    p_user->Mkdir("bin", "777");
-    p_user->Mkdir("etc", "755");
-    p_user->Mkdir("home", "777");
-    p_user->Mkdir("dev", "777");
-    // 创建用户信息文件
-    // p_user->Create("/etc/user", "644");
-    p_user->CheckDirectoryParam("/etc/user");
-    p_user->u_args_[1] = p_user->GetInodeMode("644");
-    p_file_manager->Create();
-    int fd = p_user->u_ar0[User::EAX];
-    if (DEBUG)
-      cout << "oprnfile fd: " << fd << endl;
-    // 写入用户信息
-    const char *init_users = "root:root:0\nyzh:011988:1000\n";
-    p_user->u_args_[0] = fd;
-    p_user->u_args_[1] = (long)init_users;
-    p_user->u_args_[2] = strlen(init_users);
-    p_file_manager->Write();
-    // 初始化用户信息
-    p_user_manager->LoadUser(init_users);
-    // 关闭文件
-    p_user->u_args_[0] = fd;
-    p_file_manager->Close();
-    // 返回根目录
-    p_user->Cd("/");
-    // root登出
-    p_user_manager->Logout();
+    FormatSystem();
     cout << "[Info] filesystem format sucessfully" << endl;
   }
   running_ = true;
@@ -124,11 +52,101 @@ Eyfs::~Eyfs() {
     Print("Info", "delete object over");
 }
 
+void Eyfs::FormatSystem() {
+  p_openfile_table->FormatOpenFileTable();
+  p_inode_table->FormatInodeTable();
+  p_buffer_manager->FormatBlock();
+  p_file_system->FormatFileSystem();
+  // 获取root根目录
+  p_file_manager->root_inode_ = p_inode_table->GetInode(0);
+  p_file_manager->root_inode_->i_count_ = 0xff;
+  // 打开根目录
+  p_user->u_pdir_current_ = p_file_manager->root_inode_;
+  p_user->u_pdir_parent_ = NULL;
+  // root用户创建基础文件夹
+  p_user->Mkdir("bin", "777");
+  p_user->Mkdir("etc", "755");
+  p_user->Mkdir("home", "777");
+  p_user->Mkdir("dev", "777");
+  // 创建用户信息文件
+  p_user->CheckDirectoryParam("/etc/user");
+  p_user->u_args_[1] = p_user->GetInodeMode("644");
+  p_file_manager->Create();
+  int fd = p_user->u_ar0[User::EAX];
+  if (DEBUG)
+    cout << "oprnfile fd: " << fd << endl;
+  // 写入用户信息
+  const char *init_users = "root:root:0\nyzh:011988:1000\n";
+  p_user->u_args_[0] = fd;
+  p_user->u_args_[1] = (long)init_users;
+  p_user->u_args_[2] = strlen(init_users);
+  p_file_manager->Write();
+  // 初始化用户信息
+  p_user_manager->LoadUser(init_users);
+  // 关闭文件
+  p_user->u_args_[0] = fd;
+  p_file_manager->Close();
+  // 返回根目录
+  p_user->Cd("/");
+  // root登出
+  p_user_manager->Logout();
+}
+
+void Eyfs::LoadSystem() {
+  // 读入SuperBlock
+  p_device_manager->ReadImage(p_superblock, sizeof(SuperBlock),
+                              FileSystem::SUPERBLOCK_START_ADDR);
+  if (DEBUG) {
+    cout << "[Superblock Info] ";
+    cout << "s_isize:" << p_superblock->s_isize_ << "  ";
+    cout << "s_fsize:" << p_superblock->s_fsize_ << "  ";
+    cout << "s_nfree:" << p_superblock->s_nfree_ << "  ";
+    cout << "s_ninode:" << p_superblock->s_ninode_ << endl;
+  }
+  // 获取root根目录
+  p_file_manager->root_inode_ = p_inode_table->GetInode(0);
+  p_file_manager->root_inode_->i_count_ = 0xff;
+  // 打开根目录
+  // p_file_manager->Open();
+  p_user->u_pdir_current_ = p_file_manager->root_inode_;
+  p_user->u_pdir_parent_ = NULL;
+  // 获取当前用户列表文件
+  // p_user->Open("etc/user", "-r");
+  p_user->CheckDirectoryParam("etc/user");
+  p_user->u_args_[1] = p_user->GetFileMode("-r");
+  p_file_manager->Open();
+  int fd = p_user->u_ar0[User::EAX];
+  int size = p_user->u_openfiles_.GetFile(fd)->f_inode_->i_size_;
+  // 读取文件
+  char *user_list = new char[size];
+  p_user->u_args_[0] = fd;
+  p_user->u_args_[1] = (long)user_list;
+  p_user->u_args_[2] = size;
+  p_file_manager->Read();
+  // 载入用户信息
+  p_user_manager->LoadUser(user_list);
+  delete[] user_list;
+  // 关闭文件
+  p_user->u_args_[0] = fd;
+  p_file_manager->Close();
+  // root登出
+  p_user_manager->Logout();
+}
+
 void Eyfs::ExecuteCmd(vector<string> cmd_args) {
   if (cmd_args[0] == "exit") {
     running_ = false;
   } else if (cmd_args[0] == "clear") {
     system("cls");
+  } else if (cmd_args[0] == "format") {
+    if (p_user->u_uid_ != 0) {
+      Print("Error", "only root can format system");
+      return;
+    }
+    delete p_user;
+    p_user = new User;
+    FormatSystem();
+    cout << "format successfully, please login" << endl;
   } else if (cmd_args[0] == "ls") {
     p_user->Ls();
   } else if (cmd_args[0] == "cd") {

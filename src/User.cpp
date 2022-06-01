@@ -374,7 +374,10 @@ void User::HandleError(enum ErrorCode err_code) {
     err_message = "permission denied";
     break;
   case U_ENOTDIR:
-    err_message = "not a directory";
+    err_message = "it is not a directory";
+    break;
+  case U_EISDIR:
+    err_message = "it is a directory";
     break;
   case U_ENFILE:
     err_message = "file table overflow";
