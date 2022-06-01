@@ -253,7 +253,7 @@ void Eyfs::ExecuteCmd(vector<string> cmd_args) {
 }
 
 void Eyfs::PrintHelp() {
-  cout << std::left << setw(50) << "commond"
+  cout << std::left << setw(50) << "command"
        << "description" << endl;
   cout << std::left << setw(50) << "exit"
        << "exit file system and update disk image." << endl;
