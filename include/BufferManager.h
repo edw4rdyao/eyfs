@@ -33,7 +33,7 @@ public:
   // @return: void
   void WriteBlock(Buffer *p_buffer);
   // @param: p_buffer: 需要延迟写的磁盘块对应的缓存控制块
-  // @brief:
+  // @brief: 延迟写入磁盘
   // @return: void
   void WriteBlockDelay(Buffer *p_buffer);
   // @param: p_buffer 需要清空的缓存控制块的引用
@@ -41,32 +41,25 @@ public:
   // @return: void
   void ClearBuffer(Buffer *p_buffer);
   // @param:
-  // @brief:
+  // @brief:刷新物理块，将所有需要写入的缓存块写入磁盘
   // @return:
   void FlushBlock();
   // @param:
-  // @brief:
+  // @brief:格式化物理块
   // @return:
   void FormatBlock();
-  // @param:
-  // @brief:
+  // @param:p_buffer
+  // @brief:将缓存块加入自由缓存队列
   // @return:
   void PushBuffer(Buffer *p_buffer);
-  // @param:
-  // @brief:
-  // @return:
+  // @param:p_buffer 
+  // @brief:将缓存块移出自由缓存队列
+  // @return:void
   void PopBuffer(Buffer *p_buffer);
-  // @param:
-  // @brief:
-  // @return:
   BufferManager();
-  // @param:
-  // @brief:
-  // @return:
   ~BufferManager();
 
 private:
-  // DeviceManager *p_device_manager_; // 磁盘设备管理
   Buffer *bm_free_list_;            // 缓存控制块的自由缓存队列
   Buffer bm_buffers_[BUFFERS_NUM];  // 缓存控制块数组
   unsigned char bm_mem_buffers_[BUFFERS_NUM][BUFFER_SIZE]; // 缓存区数组

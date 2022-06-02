@@ -63,16 +63,13 @@ public:
   // @brief: 更新外存Inode的最后访问时间和修改时间
   // @return: void
   void UpdateInode(int time);
-  // @param:
-  // @brief:
-  // @return:
   void CopyInode(Buffer *p_buffer, int id);
   // @param:
-  // @brief:
+  // @brief:清空Inode
   // @return:
   void CleanInode();
   // @param:
-  // @brief:
+  // @brief:清除Inode
   // @return:
   void TruncateInode();
   unsigned int i_flag_; // Inode文件状态的标志位

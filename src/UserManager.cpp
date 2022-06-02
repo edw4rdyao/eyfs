@@ -9,7 +9,7 @@ extern FileManager *p_file_manager;
 
 UserManager::UserManager() {
   user_num_ = 0;
-  current_user_ = -1;
+  current_user_ = 0;
   for (int i = 0; i < USER_NUM; i++) {
     users_info_[i].username = "";
     users_info_[i].password = "";
@@ -17,7 +17,7 @@ UserManager::UserManager() {
   }
 }
 
-UserManager::~UserManager() { UpdateUser(); }
+UserManager::~UserManager() {}
 
 void UserManager::AddUser(string username, string passward, string uid) {
   if (p_user->u_uid_ != 0) {
@@ -57,6 +57,9 @@ void UserManager::AddUser(string username, string passward, string uid) {
   users_info_[user_num_].username = username;
   users_info_[user_num_].password = passward;
   users_info_[user_num_].uid = uid;
+  users_[user_num_].u_uid_ = stoi(uid);
+  users_[user_num_].u_pdir_current_ = p_file_manager->root_inode_;
+  users_[user_num_].u_pdir_parent_ = NULL;
   user_num_++;
   cout << "add user " << username << " successfully" << endl;
   return;
@@ -80,10 +83,23 @@ void UserManager::DeleteUser(string username) {
           users_info_[j].username = "";
           users_info_[j].password = "";
           users_info_[j].uid = "";
+          users_[j].u_error_code_ = User::U_NOERROR;
+          users_[j].u_dir_param_ = "/";
+          users_[j].u_dir_fact_ = "/";
+          users_[j].u_uid_ = 0;
+          users_[j].u_gid_ = 0;
+          memset(users_[j].u_args_, 0, sizeof(users_[j].u_args_));
         } else {
           users_info_[j].username = users_info_[j + 1].username;
           users_info_[j].password = users_info_[j + 1].password;
           users_info_[j].uid = users_info_[j + 1].uid;
+          users_[j].u_error_code_ = users_[j + 1].u_error_code_;
+          users_[j].u_dir_param_ = users_[j + 1].u_dir_param_;
+          users_[j].u_dir_fact_ = users_[j + 1].u_dir_fact_;
+          users_[j].u_uid_ = users_[j + 1].u_uid_;
+          users_[j].u_gid_ = users_[j + 1].u_gid_;
+          memcpy(users_[j].u_args_, users_[j + 1].u_args_,
+                 sizeof(users_[j].u_args_));
         }
       }
       user_num_--;
@@ -101,6 +117,9 @@ void UserManager::LoadUser(const char *user_list) {
   int state = 0;
   for (int i = 0; i < s.length(); i++) {
     if (s[i] == '\n') {
+      users_[user_num_].u_uid_ = stoi(users_info_[user_num_].uid);
+      users_[user_num_].u_pdir_current_ = p_file_manager->root_inode_;
+      users_[user_num_].u_pdir_parent_ = NULL;
       user_num_++;
       state = 0;
       continue;
@@ -130,7 +149,7 @@ void UserManager::Login(string username, string password) {
         return;
       } else {
         current_user_ = i;
-        p_user->u_uid_ = stoi(users_info_[i].uid);
+        p_user = &(users_[i]);
         return;
       }
     }
@@ -142,14 +161,13 @@ void UserManager::Login(string username, string password) {
 void UserManager::Logout() {
   // uid清空
   current_user_ = -1;
-  p_user->u_uid_ = -1;
-  // 将用户打开所有文件关闭
-  for (size_t i = 0; i < OpenFiles::FILESNUM; i++) {
-    if (p_user->u_openfiles_.process_openfile_table_[i]) {
-      p_user->u_args_[0] = i;
-      p_file_manager->Close();
-    }
-  }
+  // // 将用户打开所有文件关闭
+  // for (size_t i = 0; i < OpenFiles::FILESNUM; i++) {
+  //   if (p_user->u_openfiles_.process_openfile_table_[i]) {
+  //     p_user->u_args_[0] = i;
+  //     p_file_manager->Close();
+  //   }
+  // }
 }
 
 void UserManager::UpdateUser() {

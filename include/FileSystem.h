@@ -8,8 +8,8 @@
 // 释放，负责SuperBlock的管理等等
 class FileSystem {
 public:
-  // 磁盘设备的大小 8M
-  static const int DISK_SIZE = 16384;
+  // 磁盘设备的大小 64M
+  static const int DISK_SIZE = 131072;
   // 每个物理块的字节数
   static const int BLOCK_SIZE = 512;
   // SuperBlock区的起始地址和大小

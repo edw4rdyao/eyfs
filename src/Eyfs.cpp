@@ -20,13 +20,12 @@ Eyfs::Eyfs() {
   p_file_system = new FileSystem();
   p_inode_table = new InodeTable();
   p_file_manager = new FileManager();
-  p_user = new User();
   p_user_manager = new UserManager();
+  p_user = &(p_user_manager->users_[0]);
   // 检查镜像文件是否存在，格式化文件系统或者加载文件系统
   if (p_device_manager->CheckImage()) {
     LoadSystem();
     cout << "[Info] filesystem loading successfully" << endl;
-
   } else {
     cout << "[Info] filesystem image not exist, is creating and formating file "
             "system...\n";
@@ -39,12 +38,12 @@ Eyfs::Eyfs() {
 Eyfs::~Eyfs() {
   if (DEBUG)
     Print("Info", "delete object");
-  delete p_user_manager;
+  p_user_manager->UpdateUser();
   delete p_file_system;
   delete p_inode_table;
   delete p_file_manager;
   delete p_openfile_table;
-  delete p_user;
+  delete p_user_manager;
   delete p_superblock;
   delete p_buffer_manager;
   delete p_device_manager;
@@ -60,9 +59,11 @@ void Eyfs::FormatSystem() {
   // 获取root根目录
   p_file_manager->root_inode_ = p_inode_table->GetInode(0);
   p_file_manager->root_inode_->i_count_ = 0xff;
-  // 打开根目录
   p_user->u_pdir_current_ = p_file_manager->root_inode_;
   p_user->u_pdir_parent_ = NULL;
+  // 初始化用户信息
+  const char *init_users = "root:root:0\nyzh:011988:1000\n";
+  p_user_manager->Login("root", "root");
   // root用户创建基础文件夹
   p_user->Mkdir("bin", "777");
   p_user->Mkdir("etc", "755");
@@ -73,16 +74,11 @@ void Eyfs::FormatSystem() {
   p_user->u_args_[1] = p_user->GetInodeMode("644");
   p_file_manager->Create();
   int fd = p_user->u_ar0[User::EAX];
-  if (DEBUG)
-    cout << "oprnfile fd: " << fd << endl;
   // 写入用户信息
-  const char *init_users = "root:root:0\nyzh:011988:1000\n";
   p_user->u_args_[0] = fd;
   p_user->u_args_[1] = (long)init_users;
   p_user->u_args_[2] = strlen(init_users);
   p_file_manager->Write();
-  // 初始化用户信息
-  p_user_manager->LoadUser(init_users);
   // 关闭文件
   p_user->u_args_[0] = fd;
   p_file_manager->Close();
@@ -90,6 +86,8 @@ void Eyfs::FormatSystem() {
   p_user->Cd("/");
   // root登出
   p_user_manager->Logout();
+  // 载入用户信息
+  p_user_manager->LoadUser(init_users);
 }
 
 void Eyfs::LoadSystem() {
@@ -106,12 +104,9 @@ void Eyfs::LoadSystem() {
   // 获取root根目录
   p_file_manager->root_inode_ = p_inode_table->GetInode(0);
   p_file_manager->root_inode_->i_count_ = 0xff;
-  // 打开根目录
-  // p_file_manager->Open();
   p_user->u_pdir_current_ = p_file_manager->root_inode_;
   p_user->u_pdir_parent_ = NULL;
   // 获取当前用户列表文件
-  // p_user->Open("etc/user", "-r");
   p_user->CheckDirectoryParam("etc/user");
   p_user->u_args_[1] = p_user->GetFileMode("-r");
   p_file_manager->Open();
@@ -123,14 +118,16 @@ void Eyfs::LoadSystem() {
   p_user->u_args_[1] = (long)user_list;
   p_user->u_args_[2] = size;
   p_file_manager->Read();
-  // 载入用户信息
-  p_user_manager->LoadUser(user_list);
-  delete[] user_list;
   // 关闭文件
   p_user->u_args_[0] = fd;
   p_file_manager->Close();
+  // 返回根目录
+  p_user->Cd("/");
   // root登出
   p_user_manager->Logout();
+  // 载入用户信息
+  p_user_manager->LoadUser(user_list);
+  delete[] user_list;
 }
 
 void Eyfs::ExecuteCmd(vector<string> cmd_args) {
@@ -171,7 +168,7 @@ void Eyfs::ExecuteCmd(vector<string> cmd_args) {
     string mode = "";
     if (cmd_args.size() == 3) {
       mode = cmd_args[2];
-    } else if (cmd_args.size() > 3 || cmd_args.size() < 2) {
+    } else {
       Print("Error", "command param is error using 'help' to check");
       return;
     }
@@ -259,6 +256,8 @@ void Eyfs::PrintHelp() {
        << "exit file system and update disk image." << endl;
   cout << std::left << setw(50) << "clear"
        << "clear the output before." << endl;
+  cout << std::left << setw(50) << "format"
+       << "format the file system." << endl;
   cout << std::left << setw(50) << "ls"
        << "list the files and directories on current directory." << endl;
   cout << std::left << setw(50) << "cd [directory path]"
@@ -303,7 +302,7 @@ void Eyfs::PrintHelp() {
 
 void Eyfs::Run() {
   while (running_) {
-    if (p_user->u_uid_ == -1) {
+    if (p_user_manager->current_user_ == -1) {
       Print("Info", "please use 'login [username] [password]' to login a user");
       cout << "user login: ";
       string cmd;

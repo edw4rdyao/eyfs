@@ -19,19 +19,19 @@ public:
 
 public:
   unsigned int b_flags_;  // !标志位，参考BufferFlag
-  Buffer *b_forw_;        //
-  Buffer *b_back_;        //
+  Buffer *b_forw_;        // 缓存队列中的前一项
+  Buffer *b_back_;        // 缓存队列中的后一项
   unsigned int b_wcount_; // 缓存块传送的字节数
   unsigned char *b_addr_; // 指向缓冲区的首地址
   int b_blkno_;           // 磁盘的逻辑块号
   int b_error_;           // IO出错时的信息
   int b_resid_;           // IO出错剩余的字节数
-  // @param:
-  // @brief:
+  // @param:无
+  // @brief:构造函数
   // @return: void
   Buffer();
-  // @param:
-  // @brief:
+  // @param:无
+  // @brief:析构函数
   // @return: void
   ~Buffer();
 };

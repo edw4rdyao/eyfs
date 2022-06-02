@@ -15,42 +15,15 @@ public:
   };
   FileManager();
   ~FileManager();
-  // @param:
-  // @brief:
-  // @return:
   void Open();
-  // @param:
-  // @brief:
-  // @return:
   void Create();
   void MakeDirectory();
-  // @param:
-  // @brief:
-  // @return:
   void OpenCommon(Inode *p_inode, int mode, int trans);
-  // @param:
-  // @brief:
-  // @return:
   void Close();
-  // @param:
-  // @brief:
-  // @return:
   void Seek();
-  // @param:
-  // @brief:
-  // @return:
   void Read();
-  // @param:
-  // @brief:
-  // @return:
   void Write();
-  // @param:
-  // @brief:
-  // @return:
   void ReadWriteCommon(enum File::FileFlags mode);
-  // @param:
-  // @brief:
-  // @return:
   int CheckAccess(Inode *p_inode, unsigned int mode);
   Inode *SearchDirectory(enum FileManager::DirectorySearchMode mode);
   Inode *MakeInode(unsigned int mode);
