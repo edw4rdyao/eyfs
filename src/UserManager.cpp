@@ -45,7 +45,6 @@ void UserManager::AddUser(string username, string passward, string uid) {
     return;
   }
   // 检查是否存在该用户
-  uid = to_string(stoi(uid));
   if (IsExistByUsername(username)) {
     Print("Error", "username exists");
     return;
