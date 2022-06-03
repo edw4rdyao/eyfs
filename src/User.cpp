@@ -394,6 +394,7 @@ void User::HandleError(enum ErrorCode err_code) {
   case U_EEXIST:
     err_message = "file or directory exists";
   default:
+    err_message = "something went wrong";
     break;
   }
   Print("Error", err_message.c_str());

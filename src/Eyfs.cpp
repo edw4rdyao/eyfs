@@ -52,6 +52,11 @@ Eyfs::~Eyfs() {
 }
 
 void Eyfs::FormatSystem() {
+  // 格式化用户管理
+  delete p_user_manager;
+  p_user_manager = new UserManager();
+  p_user = &(p_user_manager->users_[0]);
+  // 其他结构格式化
   p_openfile_table->FormatOpenFileTable();
   p_inode_table->FormatInodeTable();
   p_buffer_manager->FormatBlock();
@@ -63,12 +68,19 @@ void Eyfs::FormatSystem() {
   p_user->u_pdir_parent_ = NULL;
   // 初始化用户信息
   const char *init_users = "root:root:0\nyzh:011988:1000\n";
-  p_user_manager->Login("root", "root");
   // root用户创建基础文件夹
-  p_user->Mkdir("bin", "777");
-  p_user->Mkdir("etc", "755");
-  p_user->Mkdir("home", "777");
-  p_user->Mkdir("dev", "777");
+  p_user->CheckDirectoryParam("bin");
+  p_user->u_args_[1] = (p_user->GetInodeMode("777") | Inode::IFDIR);
+  p_file_manager->MakeDirectory();
+  p_user->CheckDirectoryParam("etc");
+  p_user->u_args_[1] = (p_user->GetInodeMode("755") | Inode::IFDIR);
+  p_file_manager->MakeDirectory();
+  p_user->CheckDirectoryParam("home");
+  p_user->u_args_[1] = (p_user->GetInodeMode("777") | Inode::IFDIR);
+  p_file_manager->MakeDirectory();
+  p_user->CheckDirectoryParam("dev");
+  p_user->u_args_[1] = (p_user->GetInodeMode("777") | Inode::IFDIR);
+  p_file_manager->MakeDirectory();
   // 创建用户信息文件
   p_user->CheckDirectoryParam("/etc/user");
   p_user->u_args_[1] = p_user->GetInodeMode("644");
@@ -140,8 +152,6 @@ void Eyfs::ExecuteCmd(vector<string> cmd_args) {
       Print("Error", "only root can format system");
       return;
     }
-    delete p_user;
-    p_user = new User;
     FormatSystem();
     cout << "format successfully, please login" << endl;
   } else if (cmd_args[0] == "ls") {
