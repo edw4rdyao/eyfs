@@ -58,10 +58,10 @@ Inode *InodeTable::GetInode(int id) {
 void InodeTable::PutInode(Inode *p_inode) {
   if (DEBUG)
     Print("InodeTable Info", "execute fuction PutInode(...)");
+  // 当前用户为唯一引用inode的用户，释放inode
   if (p_inode->i_count_ == 1) {
-    // 当前进程为唯一引用inode的进程，释放inode
+    // 当前inode没有链接，删除释放inode
     if (p_inode->i_nlink_ <= 0) {
-      // 当前inode没有目录，删除释放inode
       p_inode->TruncateInode();
       p_inode->i_mode_ = 0;
       p_file_system->FreeInode(p_inode->i_id_);

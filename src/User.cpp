@@ -165,8 +165,10 @@ void User::Close(string fd) {
   }
   u_args_[0] = stoi(fd);
   p_file_manager->Close();
-  if (u_error_code_)
+  if (u_error_code_) {
     HandleError(u_error_code_);
+    return;
+  }
   cout << "close file successfully, which file descriptor is " << u_args_[0]
        << endl;
   return;
@@ -393,6 +395,7 @@ void User::HandleError(enum ErrorCode err_code) {
     break;
   case U_EEXIST:
     err_message = "file or directory exists";
+    break;
   default:
     err_message = "something went wrong";
     break;

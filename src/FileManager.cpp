@@ -73,7 +73,6 @@ void FileManager::MakeDirectory() {
   if (p_inode == NULL) {
     return;
   }
-  p_inode_table->PutInode(p_inode);
   return;
 }
 
@@ -423,7 +422,6 @@ void FileManager::Unlink() {
   // 修改Inode
   p_inode->i_nlink_--;
   p_inode->i_flag_ |= Inode::I_UPD;
-  p_inode_table->PutInode(p_inode_delete);
   p_inode_table->PutInode(p_inode);
   return;
 }
