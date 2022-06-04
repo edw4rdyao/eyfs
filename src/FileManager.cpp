@@ -367,7 +367,6 @@ void FileManager::WriteDirectory(Inode *p_inode) {
   p_user->u_ioparam.io_start_addr_ = (unsigned char *)&p_user->u_dir_entry_;
   // 将目录项写入父目录文件
   p_user->u_pdir_parent_->WriteInode();
-  p_inode_table->PutInode(p_user->u_pdir_parent_);
   return;
 }
 
@@ -411,6 +410,11 @@ void FileManager::Unlink() {
   p_inode = p_inode_table->GetInode(p_user->u_dir_entry_.inode_id_);
   if (p_inode == NULL) {
     Print("FileManager Info", "get inode failed");
+    return;
+  }
+  if ((p_inode->i_mode_ & Inode::IFMT) == Inode::IFDIR) {
+    p_user->u_error_code_ = User::U_EISDIR;
+    p_inode_table->PutInode(p_inode);
     return;
   }
   // 写入清零后的目录项

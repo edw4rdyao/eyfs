@@ -96,6 +96,27 @@ void Eyfs::FormatSystem() {
   p_file_manager->Close();
   // 返回根目录
   p_user->Cd("/");
+
+  // !实验要求
+  p_user->Cd("/home");
+  p_user->Mkdir("texts", "755");
+  p_user->Mkdir("reports", "755");
+  p_user->Mkdir("photos", "755");
+  p_user->Cd("texts");
+  p_user->Create("readme.txt", "644");
+  p_user->Write("0", "readme.txt", "648");
+  p_user->Close("0");
+  p_user->Cd("../photos");
+  p_user->Create("pic.png", "644");
+  p_user->Write("0", "pic.png", "263851");
+  p_user->Close("0");
+  p_user->Cd("../reports");
+  p_user->Create("report.pdf", "644");
+  p_user->Write("0", "report.pdf", "3256474");
+  p_user->Close("0");
+  p_user->Cd("/");
+  // !实验要求结束
+
   // root登出
   p_user_manager->Logout();
   // 载入用户信息

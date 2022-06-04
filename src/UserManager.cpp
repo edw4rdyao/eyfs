@@ -141,6 +141,10 @@ void UserManager::LoadUser(const char *user_list) {
 }
 
 void UserManager::Login(string username, string password) {
+  if (current_user_ != -1) {
+    Print("Error", "please logout");
+    return;
+  }
   for (int i = 0; i < user_num_; i++) {
     if (users_info_[i].username == username) {
       if (users_info_[i].password != password) {
@@ -160,13 +164,6 @@ void UserManager::Login(string username, string password) {
 void UserManager::Logout() {
   // uid清空
   current_user_ = -1;
-  // // 将用户打开所有文件关闭
-  // for (size_t i = 0; i < OpenFiles::FILESNUM; i++) {
-  //   if (p_user->u_openfiles_.process_openfile_table_[i]) {
-  //     p_user->u_args_[0] = i;
-  //     p_file_manager->Close();
-  //   }
-  // }
 }
 
 void UserManager::UpdateUser() {
